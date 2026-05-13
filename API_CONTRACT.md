@@ -8,6 +8,13 @@ http://localhost:1432
 
 Frontend MUST follow these contracts exactly.
 
+Do not invent:
+- endpoints
+- payload shapes
+- response formats
+
+Backend schemas are authoritative.
+
 ---
 
 # Authentication
@@ -15,6 +22,7 @@ Frontend MUST follow these contracts exactly.
 ## GET /api/auth/me
 
 Response:
+
 ```json
 {
   "id": "string",
@@ -23,9 +31,12 @@ Response:
 }
 ```
 
+---
+
 ## POST /api/auth/login
 
 Request:
+
 ```json
 {
   "email": "string",
@@ -34,6 +45,7 @@ Request:
 ```
 
 Response:
+
 ```json
 {
   "token": "string",
@@ -51,15 +63,19 @@ Response:
 ## GET /api/providers
 
 Response:
+
 ```json
 {
   "providers": []
 }
 ```
 
+---
+
 ## POST /api/providers
 
 Request:
+
 ```json
 {
   "name": "string",
@@ -74,15 +90,19 @@ Request:
 ## GET /api/settings
 
 Response:
+
 ```json
 {
   "theme": "dark"
 }
 ```
 
+---
+
 ## POST /api/settings
 
 Request:
+
 ```json
 {
   "theme": "dark"
@@ -96,6 +116,7 @@ Request:
 ## GET /api/usage
 
 Response:
+
 ```json
 {
   "total_requests": 0,
@@ -110,6 +131,7 @@ Response:
 ## GET /api/aliases
 
 Response:
+
 ```json
 {
   "aliases": []
@@ -123,6 +145,7 @@ Response:
 ## GET /api/combos
 
 Response:
+
 ```json
 {
   "combos": []
@@ -136,6 +159,7 @@ Response:
 ## GET /api/oauth/providers
 
 Response:
+
 ```json
 {
   "providers": []
@@ -149,6 +173,7 @@ Response:
 ## POST /api/chat/stream
 
 Request:
+
 ```json
 {
   "messages": [],
@@ -161,11 +186,14 @@ Response:
 - SSE stream
 - normalized backend chunks
 
+Frontend MUST NOT parse provider-native stream formats.
+
 ---
 
 # Error Format
 
-All backend errors follow:
+All backend errors must follow:
+
 ```json
 {
   "error": "message"
@@ -174,8 +202,37 @@ All backend errors follow:
 
 ---
 
-# Rules
+# API Rules
 
 - Backend is authoritative
 - Frontend adapts to backend
+- No temporary response formats
 - No frontend-only schemas
+- No compatibility wrappers unless approved
+
+---
+
+# Frontend API Layer
+
+Frontend communication must go through:
+
+```txt
+src/lib/api/*
+```
+
+Do not:
+- duplicate fetch wrappers
+- fetch directly inside components
+- create alternate API layers
+
+---
+
+# Route Strategy
+
+Current strategy:
+- keep Next.js API routes temporarily
+- convert them into thin proxies
+
+Final target:
+- no business logic in routes
+- no persistence in routes

@@ -4,6 +4,17 @@ THIS DOCUMENT IS AUTHORITATIVE.
 
 All AI coding agents MUST read and follow this document before making ANY changes.
 
+Applies to:
+- Claude
+- GPT
+- GLM
+- Qwen
+- OpenCode
+- Kiro
+- RooCode
+- Copilot
+- Any autonomous coding agent
+
 ---
 
 # PROJECT CONTEXT
@@ -60,7 +71,28 @@ Backend responsibilities:
 
 ---
 
-# NEVER
+# CURRENT MIGRATION STATUS
+
+Backend:
+✅ Completed
+
+Frontend:
+⚠ Hybrid architecture still exists
+
+Current frontend still contains:
+- old API routes
+- local DB assumptions
+- usageDb references
+- storage coupling
+- business logic leakage
+
+Migration is IN PROGRESS.
+
+---
+
+# MOST IMPORTANT RULES
+
+## NEVER:
 
 - recreate deleted SQLite modules
 - recreate usageDb.js
@@ -75,6 +107,8 @@ Backend responsibilities:
 ---
 
 # API ROUTE RULE
+
+IMPORTANT:
 
 Next.js API routes are TEMPORARILY ALLOWED.
 
@@ -108,28 +142,146 @@ Go backend
     ↓
 PostgreSQL/providers
 
----
+NOT:
 
-# REFERENCE IMPLEMENTATION
-
-9router is the behavioral reference implementation.
-
-AIPROXY backend may differ internally.
-
-BUT:
-Frontend behavior must remain compatible unless explicitly changed.
+Browser
+    ↓
+Next.js
+    ↓
+SQLite/business logic
 
 ---
 
-# MIGRATION WORKFLOW
+# REFACTOR STRATEGY
 
-Before modifying ANY feature:
+DO NOT:
+- mass rewrite
+- mass delete
+- autonomous redesign
 
-1. Locate equivalent 9router implementation
-2. Understand feature behavior
-3. Compare with current AIPROXY implementation
-4. Preserve UX behavior
-5. THEN migrate
+DO:
+- incremental migration
+- preserve existing UI contracts
+- preserve component behavior
+- preserve store shapes
+- preserve response formats when possible
+
+---
+
+# BUILD RULES
+
+NEVER:
+- enter infinite build loops
+- patch errors randomly
+- run build after every tiny fix
+
+Instead:
+1. trace dependency graph
+2. batch related fixes
+3. migrate systematically
+4. run build after grouped changes
+
+---
+
+# DELETE RULES
+
+Before deleting ANY module:
+1. locate ALL imports
+2. replace ALL usages
+3. verify migration path
+4. THEN delete
+
+Never delete first.
+
+---
+
+# STATE MANAGEMENT RULES
+
+Allowed:
+- React state
+- Zustand
+- TanStack Query
+
+Forbidden:
+- SQLite-backed state
+- filesystem persistence
+- hidden persistence layers
+
+---
+
+# STREAMING RULES
+
+Streaming is core infrastructure.
+
+Frontend:
+- renders stream chunks
+
+Backend:
+- normalizes provider streams
+- parses provider formats
+- handles retries
+- handles provider adapters
+
+Frontend MUST NOT implement provider-specific stream parsing.
+
+---
+
+# AUTH RULES
+
+OAuth/token logic belongs to backend.
+
+Frontend may:
+- render login UI
+- redirect users
+- store temporary auth state
+
+Frontend may NOT:
+- manage OAuth persistence
+- implement token business logic
+- become auth authority
+
+---
+
+# IMPORT RULES
+
+Never create duplicate systems.
+
+If a module already exists:
+- extend carefully
+- preserve exports
+- preserve interfaces
+
+Avoid:
+- duplicate wrappers
+- temporary adapters
+- alternate stores
+
+---
+
+# MIGRATION PRIORITY
+
+Priority order:
+
+1. API thin layer
+2. Shared types/contracts
+3. Feature-by-feature migration
+4. Streaming normalization
+5. Dependency cleanup
+6. SQLite removal
+7. Final stabilization
+
+---
+
+# CURRENT KNOWN PROBLEMS
+
+Known unresolved issues:
+- usageDb imports
+- localDb dependencies
+- shared constants path inconsistencies
+- API route business logic
+- hybrid frontend/backend boundaries
+
+These must be fixed SYSTEMATICALLY.
 
 ---
 
@@ -144,3 +296,38 @@ DO NOT:
 - invent systems
 
 Ask for clarification instead.
+
+---
+
+# REQUIRED DOCUMENTS
+
+AI agents MUST also read:
+
+- STRUCTURE.md
+- ARCHITECTURE.md
+- FRONTEND_RULES.md
+- API_CONTRACT.md
+- MIGRATION_PLAN.md
+
+These documents OVERRIDE assumptions.
+
+---
+
+# FINAL GOAL
+
+Target architecture:
+
+Frontend:
+- pure UI
+- thin proxy/API layer only
+- no persistence
+- no business logic
+
+Backend:
+- single source of truth
+- all providers
+- all logic
+- all persistence
+- all analytics
+
+This architecture is FINAL.

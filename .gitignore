@@ -59,7 +59,7 @@ Thumbs.db
 task/
 task2/
 docs/task/
-docs/task2/
+docs/*
 
 # Result directory
 result/

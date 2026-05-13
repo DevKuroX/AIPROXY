@@ -14,6 +14,14 @@ Current architecture:
 - Multi-provider AI routing
 - Thin frontend migration in progress
 
+The backend is already implemented.
+
+The frontend is currently being migrated from:
+- hybrid fullstack architecture
+
+into:
+- thin UI-first architecture
+
 ---
 
 # Core Architecture
@@ -30,7 +38,9 @@ PostgreSQL / Redis / Providers
 
 ---
 
-# Frontend Responsibilities
+# Final Architecture Goal
+
+## Frontend
 
 Frontend responsibilities:
 
@@ -58,7 +68,7 @@ Frontend MUST NOT contain:
 
 ---
 
-# Backend Responsibilities
+## Backend
 
 Backend responsibilities:
 
@@ -81,7 +91,36 @@ Backend is the ONLY source of truth.
 
 ---
 
+# Frontend API Routes
+
+Current frontend contains:
+```txt
+src/app/api/*
+```
+
+These routes are TEMPORARILY retained.
+
+However:
+They MUST become:
+# thin proxy routes only
+
+Allowed:
+```ts
+fetch(BACKEND_URL)
+```
+
+Forbidden:
+- SQLite access
+- local business logic
+- provider execution
+- analytics calculations
+- local persistence
+
+---
+
 # Streaming Architecture
+
+Streaming is critical infrastructure.
 
 Frontend:
 - renders chunks
@@ -93,6 +132,33 @@ Backend:
 - handles retries
 - handles provider adapters
 - owns streaming business logic
+
+Frontend MUST NOT parse provider-native stream formats.
+
+---
+
+# State Management
+
+Allowed:
+- React state
+- Zustand
+- TanStack Query
+
+Forbidden:
+- SQLite-backed state
+- filesystem-backed state
+- hidden persistence layers
+
+---
+
+# Persistence
+
+Persistence belongs ONLY to backend.
+
+Frontend must never:
+- store critical state locally
+- implement hidden DB layers
+- recreate SQLite systems
 
 ---
 
@@ -110,6 +176,100 @@ Backend:
 - manages auth business logic
 
 ---
+
+# Shared Contracts
+
+Frontend MUST follow backend API contracts exactly.
+
+Do not:
+- invent endpoints
+- invent response formats
+- create frontend-only schemas
+
+---
+
+# Migration Philosophy
+
+Migration must be:
+- incremental
+- deterministic
+- minimally invasive
+
+Avoid:
+- mass rewrites
+- speculative redesigns
+- architecture improvisation
+
+---
+
+# Known Legacy Areas
+
+Potentially problematic areas:
+
+```txt
+src/lib/*
+src/app/api/*
+src/sse/*
+src/shared/*
+```
+
+These areas may still contain:
+- old persistence assumptions
+- business logic leakage
+- hybrid architecture remnants
+
+Migration must remove these safely.
+
+---
+
+# Final Frontend Target
+
+Frontend should ultimately contain ONLY:
+
+- pages
+- components
+- hooks
+- stores
+- API wrappers
+- stream renderers
+- UI utilities
+
+# Frontend Migration Status
+
+## Current State
+
+Frontend still contains:
+- SQLite assumptions
+- local persistence remnants
+- business logic leakage
+- hybrid backend/frontend patterns
+
+---
+
+## Current Refactor Goal
+
+Convert frontend into:
+
+- thin UI layer
+- thin proxy routes
+- backend-driven architecture
+
+WITHOUT changing:
+- user behavior
+- interaction flow
+- UX expectations
+
+---
+
+## Current Known Issues
+
+- usageDb imports still unresolved
+- localDb remnants
+- shared constants path inconsistencies
+- API route business logic leakage
+
+These are migration leftovers.
+Do NOT patch randomly.
 
 # Critical Architectural Difference
 
@@ -129,3 +289,5 @@ This means:
 
 Do NOT recreate 9router internal architecture.
 Only preserve behavior and UX.
+
+Nothing else.
