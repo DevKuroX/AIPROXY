@@ -58,8 +58,9 @@ Thumbs.db
 # Task directories
 task/
 task2/
-docs/task/
-docs/*
+
+# Documentation
+docs/
 
 # Result directory
 result/
