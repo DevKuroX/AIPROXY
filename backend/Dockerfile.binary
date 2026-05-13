@@ -1,0 +1,19 @@
+# Minimal scratch-based Docker image for AIPROXY
+# Used by GoReleaser for distribution
+
+FROM scratch
+
+# Copy CA certificates for HTTPS requests
+COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Copy timezone data
+COPY --from=alpine:latest /usr/share/zoneinfo /usr/share/zoneinfo
+
+# Copy the binary
+COPY ai_proxy /ai_proxy
+
+# Expose the default port
+EXPOSE 20128
+
+# Run the binary
+ENTRYPOINT ["/ai_proxy"]

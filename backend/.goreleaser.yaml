@@ -1,0 +1,110 @@
+# GoReleaser configuration for AIPROXY
+# https://goreleaser.com
+
+project_name: ai_proxy
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - "6"
+    main: ./cmd/server
+    binary: ai_proxy
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+      - .env.example
+
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+      - "merge conflict"
+      - "Merge pull request"
+      - "Merge remote-tracking branch"
+      - "Merge branch"
+
+release:
+  github:
+    owner: DevKuroX
+    name: AIPROXY
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## AIPROXY {{ .Tag }}
+    
+    AI Gateway with OpenAI-compatible API
+  footer: |
+    **Full Changelog**: https://github.com/DevKuroX/AIPROXY/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+dockers:
+  - image_templates:
+      - "ghcr.io/devkurox/ai_proxy:{{ .Version }}-amd64"
+      - "ghcr.io/devkurox/ai_proxy:latest-amd64"
+    dockerfile: Dockerfile.binary
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source=https://github.com/DevKuroX/AIPROXY"
+  - image_templates:
+      - "ghcr.io/devkurox/ai_proxy:{{ .Version }}-arm64"
+      - "ghcr.io/devkurox/ai_proxy:latest-arm64"
+    dockerfile: Dockerfile.binary
+    use: buildx
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source=https://github.com/DevKuroX/AIPROXY"
+
+docker_manifests:
+  - name_template: "ghcr.io/devkurox/ai_proxy:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/devkurox/ai_proxy:{{ .Version }}-amd64"
+      - "ghcr.io/devkurox/ai_proxy:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/devkurox/ai_proxy:latest"
+    image_templates:
+      - "ghcr.io/devkurox/ai_proxy:latest-amd64"
+      - "ghcr.io/devkurox/ai_proxy:latest-arm64"

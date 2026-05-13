@@ -1,0 +1,68 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+ai_proxy_server
+ai_proxy_test
+aiproxy
+server
+
+# Go
+*.test
+*.out
+vendor/
+
+# Environment
+backend/.env
+.env.local
+
+# Logs
+*.log
+backend/logs/
+logs/
+
+# Build artifacts
+backend/bin/
+bin/
+dist/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.tmp
+*.bak
+.git.backup/
+
+# OpenCode/CL4ude
+.opencode/
+.claude/
+.sisyphus/
+
+# Task directories
+task/
+task2/
+docs/task/
+docs/task2/
+
+# Result directory
+result/
+
+# Reference code (contains secrets)
+backend/_ref/

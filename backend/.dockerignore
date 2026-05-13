@@ -1,0 +1,74 @@
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Node.js
+node_modules
+frontend/node_modules
+frontend/.next
+frontend/.turbo
+
+# Frontend source (only need the build output)
+frontend/src
+frontend/app
+frontend/components
+frontend/lib
+frontend/hooks
+frontend/public
+frontend/styles
+frontend/tests
+frontend/*.json
+frontend/*.config.*
+frontend/*.ts
+frontend/*.js
+frontend/postcss.config.*
+frontend/tailwind.config.*
+frontend/tsconfig.json
+frontend/next.config.*
+frontend/playwright.config.*
+
+# Build artifacts
+bin/
+dist/
+out/
+
+# Development files
+.env
+.env.*
+!.env.example
+*.log
+
+# IDE and editor files
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Documentation (not needed in image)
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Test files
+*_test.go
+testdata/
+
+# Reference implementation
+_ref/
+
+# Config files for other tools
+.claude/
+.opencode/
+.sisyphus/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

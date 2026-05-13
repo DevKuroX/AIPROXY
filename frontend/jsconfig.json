@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "open-sse": ["./node_modules/open-sse"],
+      "open-sse/*": ["./node_modules/open-sse/*"],
+      "open-sse/config/*": ["./node_modules/open-sse/config/*"]
+    },
+    "module": "ESNext",
+    "moduleResolution": "bundler"
+  }
+}
