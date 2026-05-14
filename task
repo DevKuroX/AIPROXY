@@ -6,20 +6,37 @@ if [ -z "$TASK_ID" ]; then
     echo "Usage: ./task <task-id>"
     echo ""
     echo "Examples:"
-    echo "  ./task T0.1"
-    echo "  ./task T2.5"
+    echo "  ./task T0.1    # SQLite import inventory"
+    echo "  ./task T2.5    # Create usage API client"
+    echo "  ./task T8.3    # Delete SQLite db directory"
     echo ""
-    echo "Available:"
-    find tasks -name "T*.md" -type f | grep -v README | sed 's/tasks\//  /' | sed 's/-.*\.md//' | sort
+    echo "Available tasks:"
+    find tasks -name "T*.md" -type f | grep -v README | sed 's/tasks/  /' | sed 's/-.*\.md//' | sort
+    echo ""
+    echo "Total: $(find tasks -name "T*.md" -type f | grep -v README | wc -l) tasks"
+    exit 1
+fi
+
+if ! [[ "$TASK_ID" =~ ^T[0-9]+\.[0-9]+$ ]]; then
+    echo "ERROR: Invalid task ID format. Expected: T<phase>.<seq> (e.g., T2.5)"
     exit 1
 fi
 
 TASK_FILE=$(find tasks -name "${TASK_ID}-*.md" -type f | grep -v README | head -1)
 
 if [ -z "$TASK_FILE" ]; then
-    echo "Task ${TASK_ID} not found"
+    echo "ERROR: Task ${TASK_ID} not found"
     exit 1
 fi
+
+TASK_TITLE=$(grep "^# " "$TASK_FILE" | head -1 | sed 's/^# //')
+
+echo ""
+echo "TASK: ${TASK_ID} - ${TASK_TITLE}"
+echo "FILE: ${TASK_FILE}"
+echo ""
+echo "----------------------------------------"
+echo ""
 
 cat << EOF
 Read and follow strictly:
@@ -43,13 +60,23 @@ Rules:
 - Preserve 9router behavior parity
 - Stop immediately after task completion
 - Maximum delegation depth: 1
+- Follow BUILD_RULES.md for any build failures
 
 Required output:
 1. Files modified
 2. Changes made
-3. Verification results
+3. Verification results (tsc, build, tests)
 4. TASK_STATUS.md update
 5. Any blockers
 
+After completion:
+- Update TASK_STATUS.md: mark task as [x]
+- Commit with message: "<type>: <description> (${TASK_ID})"
+
 STOP after task execution.
 EOF
+
+echo ""
+echo "----------------------------------------"
+echo "Pipe to AI: ./task ${TASK_ID} | pbcopy"
+echo "----------------------------------------"

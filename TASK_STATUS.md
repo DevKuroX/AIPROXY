@@ -1,8 +1,8 @@
 # AIPROXY Migration Task Status
 
 > **Last Updated**: 2026-05-14
-> **Current Phase**: Phase 1 — Shared Contracts Stabilization
-> **Active Task**: T1.3
+> **Current Phase**: Phase 2 — SQLite Dependency Isolation
+> **Active Task**: T2.1
 
 ---
 
@@ -32,9 +32,9 @@
 | T0.7 | `[x]` | API Contract update |
 | T0.8 | `[x]` | Backend coverage verification |
 | T0.9 | `[x]` | PM decisions collection |
-| T0.10 | `[x]` | HAR fixtures collection
+| T0.10 | `[x]` | HAR fixtures collection |
 
-**Phase Status**: `[ ]` NOT STARTED
+**Phase Status**: `[x]` COMPLETE
 
 ---
 
@@ -45,13 +45,13 @@
 | T1.1 | `[x]` | Constants import inventory |
 | T1.2 | `[x]` | Constants index normalization |
 | T1.3 | `[x]` | Constants source comments |
-| T1.4 | `[ ]` | API contracts interfaces |
-| T1.5 | `[ ]` | Migrate duplicate types |
-| T1.6 | `[ ]` | TypeScript check |
+| T1.4 | `[x]` | API contracts interfaces |
+| T1.5 | `[x]` | Migrate duplicate types |
+| T1.6 | `[x]` | TypeScript check |
 | T1.7 | `[ ]` | Build check |
 | T1.8 | `[ ]` | Phase 1 smoke test |
 
-**Phase Status**: `[ ]` NOT STARTED
+**Phase Status**: `[~]` IN PROGRESS
 
 ---
 
@@ -87,13 +87,13 @@
 |------|--------|-------|
 | T3.0 | `[ ]` | Create proxy helper |
 | T3.1 | `[ ]` | Proxy helper tests |
-| T3.2 | `[ ]` | Convert auth/health/version |
-| T3.3 | `[ ]` | Convert admin CRUD set 1 |
-| T3.4 | `[ ]` | Convert admin CRUD set 2 |
-| T3.5 | `[ ]` | Convert settings/usage/oauth |
-| T3.6 | `[ ]` | HAR replay validation |
-| T3.7 | `[ ]` | Component consumers migration |
-| T3.8 | `[ ]` | Build and smoke |
+| T3.2 | `[ ]` | Convert auth/health/version routes |
+| T3.3 | `[ ]` | Convert providers routes |
+| T3.4 | `[ ]` | Convert settings routes |
+| T3.5 | `[ ]` | Convert usage routes |
+| T3.6 | `[ ]` | Convert aliases routes |
+| T3.7 | `[ ]` | Convert combos routes |
+| T3.8 | `[ ]` | Phase 3 exit verification |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -103,13 +103,13 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T4.1 | `[ ]` | init/ route |
-| T4.2 | `[ ]` | shutdown/ route |
-| T4.3 | `[ ]` | locale/ route |
-| T4.4 | `[ ]` | cli-tools/ route |
-| T4.5 | `[ ]` | cloud/ route |
-| T4.6 | `[ ]` | tunnel/ route |
-| T4.7 | `[ ]` | translator/ route |
+| T4.1 | `[ ]` | Init routes decision |
+| T4.2 | `[ ]` | Shutdown routes decision |
+| T4.3 | `[ ]` | Locale routes decision |
+| T4.4 | `[ ]` | CLI tools routes decision |
+| T4.5 | `[ ]` | Cloud routes decision |
+| T4.6 | `[ ]` | Tunnel routes decision |
+| T4.7 | `[ ]` | Translator routes decision |
 | T4.8 | `[ ]` | v1beta proxy streaming |
 | T4.9 | `[ ]` | v1 proxy streaming |
 | T4.10 | `[ ]` | HAR replay verification |
@@ -123,16 +123,15 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T5.1 | `[ ]` | Token paths audit |
-| T5.2 | `[ ]` | Token decision lock |
-| T5.3 | `[ ]` | Single token accessor |
-| T5.4 | `[ ]` | UserStore refactor |
-| T5.5 | `[ ]` | Auth fetch unification |
-| T5.6 | `[ ]` | Login flow audit |
-| T5.7 | `[ ]` | OAuth callback audit |
-| T5.8 | `[ ]` | Logout flow audit |
+| T5.1 | `[ ]` | Token source audit |
+| T5.2 | `[ ]` | Unify token retrieval |
+| T5.3 | `[ ]` | Update API clients token |
+| T5.4 | `[ ]` | Remove token from userStore |
+| T5.5 | `[ ]` | Update components token access |
+| T5.6 | `[ ]` | Update login flow |
+| T5.7 | `[ ]` | Update logout flow |
+| T5.8 | `[ ]` | Update route auth integration |
 | T5.9 | `[ ]` | Auth regression manual test |
-| T5.10 | `[ ]` | Direct token accessors |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -142,16 +141,16 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T6.1 | `[ ]` | Deprecate oauth |
-| T6.2 | `[ ]` | Deprecate tunnel |
-| T6.3 | `[ ]` | Deprecate updater |
-| T6.4 | `[ ]` | Deprecate usage |
-| T6.5 | `[ ]` | Deprecate network |
-| T6.6 | `[ ]` | Deprecate mitm |
-| T6.7 | `[ ]` | Deprecate providerNormalization |
-| T6.8 | `[ ]` | Deprecate initCloudSync |
-| T6.9 | `[ ]` | Classify consoleLogBuffer |
-| T6.10 | `[ ]` | Build smoke per batch |
+| T6.1 | `[ ]` | Deprecate OAuth module |
+| T6.2 | `[ ]` | Deprecate tunnel module |
+| T6.3 | `[ ]` | Deprecate updater module |
+| T6.4 | `[ ]` | Deprecate usage module |
+| T6.5 | `[ ]` | Deprecate network module |
+| T6.6 | `[ ]` | Deprecate MITM module |
+| T6.7 | `[ ]` | Deprecate provider normalization |
+| T6.8 | `[ ]` | Deprecate cloud sync module |
+| T6.9 | `[ ]` | Classify console log buffer |
+| T6.10 | `[ ]` | Phase 6 verification |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -161,20 +160,20 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T7.1 | `[ ]` | Stream contract docs |
-| T7.2 | `[ ]` | Event types verification |
-| T7.3 | `[ ]` | Provider format leaks |
+| T7.1 | `[ ]` | Inspect backend stream format |
+| T7.2 | `[ ]` | Confirm event types |
+| T7.3 | `[ ]` | Check provider format leaks |
 | T7.4 | `[ ]` | Create SSE consumer |
-| T7.5 | `[ ]` | SSE consumer tests |
+| T7.5 | `[ ]` | Unit test SSE consumer |
 | T7.6 | `[ ]` | Slim SSE handlers |
-| T7.7 | `[ ]` | Stream consumers inventory |
-| T7.8 | `[ ]` | Chat UI migration |
-| T7.9 | `[ ]` | Stream feature flag |
+| T7.7 | `[ ]` | Inventory stream consumers |
+| T7.8 | `[ ]` | Migrate chat UI |
+| T7.9 | `[ ]` | Add stream feature flag |
 | T7.10 | `[ ]` | Streaming parity test |
-| T7.11 | `[ ]` | Delete open-sse |
-| T7.12 | `[ ]` | Zero imports verification |
-| T7.13 | `[ ]` | Remove feature flag |
-| T7.14 | `[ ]` | Lint rule open-sse |
+| T7.11 | `[ ]` | Delete open-sse directory |
+| T7.12 | `[ ]` | Verify zero open-sse imports |
+| T7.13 | `[ ]` | Remove stream feature flag |
+| T7.14 | `[ ]` | Add open-sse lint rule |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -184,14 +183,14 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T8.1 | `[ ]` | Zero importers verification |
+| T8.1 | `[ ]` | Re-verify zero shim importers |
 | T8.2 | `[ ]` | Delete shim files |
 | T8.3 | `[ ]` | Delete SQLite DB directory |
 | T8.4 | `[ ]` | Delete dataDir.js |
-| T8.5 | `[ ]` | Remove SQLite package |
-| T8.6 | `[ ]` | SQLite driver search |
-| T8.7 | `[ ]` | Build smoke SQLite-sensitive |
-| T8.8 | `[ ]` | Lint rule SQLite |
+| T8.5 | `[ ]` | Remove SQLite from package.json |
+| T8.6 | `[ ]` | Search direct SQLite imports |
+| T8.7 | `[ ]` | Build and smoke test |
+| T8.8 | `[ ]` | Add architecture enforcement lint |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -201,13 +200,12 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T9.1 | `[ ]` | Diff page files |
-| T9.2 | `[ ]` | Diff layout files |
-| T9.3 | `[ ]` | Port missing behaviors |
-| T9.4 | `[ ]` | Delete dual shell JS |
-| T9.5 | `[ ]` | Config audit |
-| T9.6 | `[ ]` | Visual diff |
-| T9.7 | `[ ]` | Build smoke |
+| T9.1 | `[ ]` | Delete layout.js |
+| T9.2 | `[ ]` | Delete page.js |
+| T9.3 | `[ ]` | Verify single app shell |
+| T9.5 | `[ ]` | Remove .js imports for layout |
+| T9.6 | `[ ]` | Verify TypeScript config |
+| T9.7 | `[ ]` | Phase 9 exit verification |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -217,13 +215,13 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T10.1 | `[ ]` | Dependency cleanup |
-| T10.2 | `[ ]` | Unused exports cleanup |
-| T10.3 | `[ ]` | Relocate test scripts |
-| T10.4 | `[ ]` | Delete jsconfig |
-| T10.5 | `[ ]` | i18n orphan cleanup |
-| T10.6 | `[ ]` | Audit CLAUDE.md |
-| T10.7 | `[ ]` | Bundle size measurement |
+| T10.1 | `[x]` | Dependency cleanup |
+| T10.2 | `[ ]` | Run depcheck |
+| T10.3 | `[ ]` | Run ts-prune |
+| T10.4 | `[ ]` | Remove unused files |
+| T10.5 | `[ ]` | Relocate test files |
+| T10.6 | `[ ]` | Document bundle size |
+| T10.7 | `[ ]` | Phase 10 exit verification |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -233,15 +231,15 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T11.1 | `[ ]` | Create FRONTEND_ARCHITECTURE.md |
+| T11.1 | `[ ]` | Create frontend ARCHITECTURE.md |
 | T11.2 | `[ ]` | Update STRUCTURE.md |
-| T11.3 | `[ ]` | Update tracker |
-| T11.4 | `[ ]` | CI architecture enforcement |
-| T11.5 | `[ ]` | Pre-commit hook |
-| T11.6 | `[ ]` | Feature parity verification |
-| T11.7 | `[ ]` | HAR regression sweep |
-| T11.8 | `[ ]` | Streaming parity test |
-| T11.9 | `[ ]` | Final sign-off |
+| T11.3 | `[ ]` | Update FRONTEND_REFACTOR_TRACKER.md |
+| T11.4 | `[x]` | CI architecture enforcement |
+| T11.5 | `[ ]` | Add pre-commit hook |
+| T11.6 | `[x]` | Feature parity verification |
+| T11.7 | `[ ]` | Run HAR replay verification |
+| T11.8 | `[ ]` | Final streaming parity test |
+| T11.9 | `[ ]` | Sign-off |
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -249,18 +247,26 @@
 
 # Summary
 
-| Phase | Total | Done | Blocked | Progress |
-|-------|-------|------|---------|----------|
-| P0 | 10 | 0 | 0 | 0% |
-| P1 | 8 | 0 | 0 | 0% |
-| P2 | 17 | 0 | 0 | 0% |
-| P3 | 9 | 0 | 0 | 0% |
-| P4 | 11 | 0 | 0 | 0% |
-| P5 | 10 | 0 | 0 | 0% |
-| P6 | 10 | 0 | 0 | 0% |
-| P7 | 14 | 0 | 0 | 0% |
-| P8 | 8 | 0 | 0 | 0% |
-| P9 | 7 | 0 | 0 | 0% |
-| P10 | 7 | 0 | 0 | 0% |
-| P11 | 9 | 0 | 0 | 0% |
-| **TOTAL** | **120** | **0** | **0** | **0%** |
+| Phase | Total | Done | Progress |
+|-------|-------|------|----------|
+| P0 | 10 | 10 | 100% |
+| P1 | 8 | 6 | 75% |
+| P2 | 17 | 0 | 0% |
+| P3 | 9 | 0 | 0% |
+| P4 | 11 | 0 | 0% |
+| P5 | 9 | 0 | 0% |
+| P6 | 10 | 0 | 0% |
+| P7 | 14 | 0 | 0% |
+| P8 | 8 | 0 | 0% |
+| P9 | 7 | 0 | 0% |
+| P10 | 7 | 1 | 14% |
+| P11 | 9 | 2 | 22% |
+| **TOTAL** | **119** | **19** | **16%** |
+
+---
+
+# Next Tasks
+
+1. **T1.7** — Build check (Phase 1 incomplete)
+2. **T1.8** — Phase 1 smoke test
+3. **T2.1** — Required clients inventory (Phase 2 start)
