@@ -32,7 +32,7 @@
 | T0.7 | `[!]` | blocked - prerequisite_blocked: T0.6 backend URL decision not complete |
 | T0.8 | `[!]` | blocked - prerequisite_blocked: T0.6 backend URL decision not complete |
 | T0.9 | `[!]` | blocked - external_pm_signoff_missing: PM decisions cannot be approved unattended |
-| T0.10 | `[ ]` | HAR fixtures collection |
+| T0.10 | `[!]` | blocked - prerequisite_blocked: T0.6 backend URL decision not complete |
 | T0.11 | `[ ]` | Preflight repair before execution resumes |
 
 **Phase Status**: `[~]` IN PROGRESS
