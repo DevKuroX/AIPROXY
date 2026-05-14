@@ -24,7 +24,7 @@
 | Task | Status | Notes |
 |------|--------|-------|
 | T0.1 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
-| T0.2 | `[ ]` | Legacy import inventory |
+| T0.2 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
 | T0.3 | `[ ]` | Stream import inventory |
 | T0.4 | `[ ]` | Filesystem import inventory |
 | T0.5 | `[ ]` | Route cohort classification |
