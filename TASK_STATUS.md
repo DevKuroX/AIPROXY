@@ -27,7 +27,7 @@
 | T0.2 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
 | T0.3 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
 | T0.4 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
-| T0.5 | `[ ]` | Route cohort classification |
+| T0.5 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
 | T0.6 | `[ ]` | Backend URL decision |
 | T0.7 | `[ ]` | API Contract update |
 | T0.8 | `[ ]` | Backend coverage verification |
