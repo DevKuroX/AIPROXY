@@ -26,7 +26,7 @@
 | T0.1 | `[x]` | SQLite import inventory |
 | T0.2 | `[x]` | Legacy import inventory |
 | T0.3 | `[x]` | Stream import inventory |
-| T0.4 | `[ ]` | Filesystem import inventory |
+| T0.4 | `[x]` | Filesystem import inventory |
 | T0.5 | `[ ]` | Route cohort classification |
 | T0.6 | `[ ]` | Backend URL decision |
 | T0.7 | `[ ]` | API Contract update |
