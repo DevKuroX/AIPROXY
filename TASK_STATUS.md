@@ -1,8 +1,8 @@
 # AIPROXY Migration Task Status
 
 > **Last Updated**: 2026-05-14
-> **Current Phase**: Not started
-> **Active Task**: None
+> **Current Phase**: Phase 1 — Shared Contracts Stabilization
+> **Active Task**: T1.1
 
 ---
 
@@ -32,7 +32,7 @@
 | T0.7 | `[x]` | API Contract update |
 | T0.8 | `[x]` | Backend coverage verification |
 | T0.9 | `[x]` | PM decisions collection |
-| T0.10 | `[~]` | HAR fixtures collection |
+| T0.10 | `[x]` | HAR fixtures collection
 
 **Phase Status**: `[ ]` NOT STARTED
 
@@ -42,7 +42,7 @@
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T1.1 | `[ ]` | Constants import inventory |
+| T1.1 | `[x]` | Constants import inventory |
 | T1.2 | `[ ]` | Constants index normalization |
 | T1.3 | `[ ]` | Constants source comments |
 | T1.4 | `[ ]` | API contracts interfaces |
