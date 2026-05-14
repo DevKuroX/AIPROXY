@@ -32,7 +32,7 @@
 | T0.7 | `[x]` | API Contract update |
 | T0.8 | `[x]` | Backend coverage verification |
 | T0.9 | `[x]` | PM decisions collection |
-| T0.10 | `[ ]` | HAR fixtures collection |
+| T0.10 | `[~]` | HAR fixtures collection |
 
 **Phase Status**: `[ ]` NOT STARTED
 
