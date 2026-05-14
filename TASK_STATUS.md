@@ -24,7 +24,7 @@
 | Task | Status | Notes |
 |------|--------|-------|
 | T0.1 | `[x]` | SQLite import inventory |
-| T0.2 | `[ ]` | Legacy import inventory |
+| T0.2 | `[x]` | Legacy import inventory |
 | T0.3 | `[ ]` | Stream import inventory |
 | T0.4 | `[ ]` | Filesystem import inventory |
 | T0.5 | `[ ]` | Route cohort classification |
