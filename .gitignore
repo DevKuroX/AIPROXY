@@ -67,3 +67,6 @@ result/
 
 # Reference code (contains secrets)
 backend/_ref/
+
+# HAR fixtures (may contain secrets)
+fixtures/
