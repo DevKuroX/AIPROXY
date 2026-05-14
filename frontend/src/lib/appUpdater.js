@@ -2,7 +2,7 @@ import { spawn, execSync } from "child_process";
 import path from "path";
 import fs from "fs";
 import os from "os";
-import { UPDATER_CONFIG } from "@/shared/constants/config";
+import { UPDATER_CONFIG } from "@/shared/constants";
 
 const KILL_TIMEOUT_MS = 5000;
 const PROCESS_WAIT_MS = 1500;

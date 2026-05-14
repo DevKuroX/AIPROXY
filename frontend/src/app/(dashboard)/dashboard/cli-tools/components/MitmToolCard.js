@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, Button, Badge, Input, ModelSelectModal } from "@/shared/components";
-import { TOOL_HOSTS } from "@/shared/constants/mitmToolHosts";
+import { TOOL_HOSTS } from "@/shared/constants";
 import Image from "next/image";
 
 /**

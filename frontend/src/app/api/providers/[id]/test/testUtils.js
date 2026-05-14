@@ -1,8 +1,8 @@
 import { getProviderConnectionById, updateProviderConnection } from "@/lib/localDb";
 import { resolveConnectionProxyConfig } from "@/lib/network/connectionProxy";
 import { testProxyUrl } from "@/lib/network/proxyTest";
-import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider } from "@/shared/constants/providers";
-import { PROVIDER_ENDPOINTS } from "@/shared/constants/config";
+import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider } from "@/shared/constants";
+import { PROVIDER_ENDPOINTS } from "@/shared/constants";
 import { getDefaultModel } from "open-sse/config/providerModels.js";
 import { resolveOllamaLocalHost } from "open-sse/config/providers.js";
 import {

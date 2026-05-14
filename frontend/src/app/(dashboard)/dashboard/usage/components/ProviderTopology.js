@@ -9,7 +9,7 @@ import {
   Controls,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS } from "@/shared/constants";
 
 // Force-stop FE animation if a provider stays active longer than this
 const FE_ACTIVE_TIMEOUT_MS = 60000;

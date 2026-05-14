@@ -7,7 +7,7 @@ import { getModelInfo } from "../services/model.js";
 import { handleSttCore } from "open-sse/handlers/sttCore.js";
 import { errorResponse, unavailableResponse } from "open-sse/utils/error.js";
 import { HTTP_STATUS } from "open-sse/config/runtimeConfig.js";
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS } from "@/shared/constants";
 import * as log from "../utils/logger.js";
 
 // Providers requiring credentials for STT

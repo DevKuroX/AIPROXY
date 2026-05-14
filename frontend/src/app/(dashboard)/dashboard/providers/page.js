@@ -13,14 +13,14 @@ import {
   Toggle,
 } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
+import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants";
 import {
   FREE_PROVIDERS,
   FREE_TIER_PROVIDERS,
   WEB_COOKIE_PROVIDERS,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
-} from "@/shared/constants/providers";
+} from "@/shared/constants";
 import Link from "next/link";
 import { getErrorCode, getRelativeTime } from "@/shared/utils";
 import { useNotificationStore } from "@/store/notificationStore";

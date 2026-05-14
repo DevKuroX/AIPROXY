@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { UPDATER_CONFIG } from "@/shared/constants/config";
+import { UPDATER_CONFIG } from "@/shared/constants";
 
 const STORAGE_KEY = "9router.cliToolEndpointPresets";
 const CUSTOM_VALUE = "__custom__";

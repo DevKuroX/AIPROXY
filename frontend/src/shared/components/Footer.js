@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { APP_CONFIG } from "@/shared/constants/config";
+import { APP_CONFIG } from "@/shared/constants";
 
 const footerLinks = {
   product: [

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProviderConnectionById } from "@/models";
-import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider } from "@/shared/constants/providers";
+import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider } from "@/shared/constants";
 import { KiroService } from "@/lib/oauth/services/kiro";
 import { GEMINI_CONFIG } from "@/lib/oauth/constants/oauth";
 import { refreshGoogleToken, updateProviderCredentials, refreshKiroToken } from "@/sse/services/tokenRefresh";

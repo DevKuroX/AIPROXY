@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Card, Badge, Button, AddCustomEmbeddingModal, NoAuthProxyCard, ProviderInfoCard } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import { MEDIA_PROVIDER_KINDS, AI_PROVIDERS, getProviderAlias, isCustomEmbeddingProvider } from "@/shared/constants/providers";
-import { getModelsByProviderId } from "@/shared/constants/models";
+import { MEDIA_PROVIDER_KINDS, AI_PROVIDERS, getProviderAlias, isCustomEmbeddingProvider } from "@/shared/constants";
+import { getModelsByProviderId } from "@/shared/constants";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 import ConnectionsCard from "@/app/(dashboard)/dashboard/providers/components/ConnectionsCard";
 import ModelsCard from "@/app/(dashboard)/dashboard/providers/components/ModelsCard";
-import { TTS_PROVIDER_CONFIG } from "@/shared/constants/ttsProviders";
+import { TTS_PROVIDER_CONFIG } from "@/shared/constants";
 import { getTtsVoicesForModel } from "open-sse/config/ttsModels.js";
 import { GOOGLE_TTS_LANGUAGES } from "open-sse/config/googleTtsLanguages.js";
 

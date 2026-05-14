@@ -6,8 +6,8 @@ import {
   getProviderNodes,
   getProxyPoolById,
 } from "@/models";
-import { APIKEY_PROVIDERS } from "@/shared/constants/config";
-import { AI_PROVIDERS, FREE_TIER_PROVIDERS, WEB_COOKIE_PROVIDERS, isOpenAICompatibleProvider, isAnthropicCompatibleProvider, isCustomEmbeddingProvider } from "@/shared/constants/providers";
+import { APIKEY_PROVIDERS } from "@/shared/constants";
+import { AI_PROVIDERS, FREE_TIER_PROVIDERS, WEB_COOKIE_PROVIDERS, isOpenAICompatibleProvider, isAnthropicCompatibleProvider, isCustomEmbeddingProvider } from "@/shared/constants";
 import { normalizeProviderId, normalizeProviderSpecificData } from "@/lib/providerNormalization";
 
 export const dynamic = "force-dynamic";

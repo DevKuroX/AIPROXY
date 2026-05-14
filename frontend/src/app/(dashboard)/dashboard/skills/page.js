@@ -7,7 +7,7 @@ import {
   SKILLS_REPO_URL,
   getSkillRawUrl,
   getSkillBlobUrl,
-} from "@/shared/constants/skills";
+} from "@/shared/constants";
 
 function CopyButton({ value, label = "Copy link" }) {
   const { copied, copy } = useCopyToClipboard(2000);

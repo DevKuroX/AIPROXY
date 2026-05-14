@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { getProviderNodeById } from "@/models";
-import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider, isCustomEmbeddingProvider, AI_PROVIDERS } from "@/shared/constants/providers";
+import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider, isCustomEmbeddingProvider, AI_PROVIDERS } from "@/shared/constants";
 import { getDefaultModel } from "open-sse/config/providerModels.js";
 import { resolveOllamaLocalHost, PROVIDERS } from "open-sse/config/providers.js";
 import { openaiToCommandCode } from "open-sse/translator/request/openai-to-commandcode.js";
-import { PROVIDER_ENDPOINTS } from "@/shared/constants/config";
+import { PROVIDER_ENDPOINTS } from "@/shared/constants";
 import { normalizeProviderId } from "@/lib/providerNormalization";
 
 // Probe a webSearch/webFetch provider using its searchConfig/fetchConfig.

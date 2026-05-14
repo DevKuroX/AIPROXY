@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { FREE_PROVIDERS, AI_PROVIDERS } from "@/shared/constants/providers";
+import { FREE_PROVIDERS, AI_PROVIDERS } from "@/shared/constants";
 
 // Keep providers without serviceKinds (default LLM) or with "llm" in serviceKinds
 function isLLMProvider(id) {

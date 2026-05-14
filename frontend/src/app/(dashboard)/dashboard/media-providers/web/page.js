@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Badge, Button } from "@/shared/components";
 import ProviderIcon from "@/shared/components/ProviderIcon";
-import { AI_PROVIDERS, getProvidersByKind } from "@/shared/constants/providers";
+import { AI_PROVIDERS, getProvidersByKind } from "@/shared/constants";
 
 function getEffectiveStatus(conn) {
   const isCooldown = Object.entries(conn).some(

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MITM_TOOLS } from "@/shared/constants/cliTools";
-import { getModelsByProviderId } from "@/shared/constants/models";
-import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider } from "@/shared/constants/providers";
+import { MITM_TOOLS } from "@/shared/constants";
+import { getModelsByProviderId } from "@/shared/constants";
+import { isOpenAICompatibleProvider, isAnthropicCompatibleProvider } from "@/shared/constants";
 import { MitmServerCard, MitmToolCard } from "@/app/(dashboard)/dashboard/cli-tools/components";
 
 export default function MitmPageClient() {

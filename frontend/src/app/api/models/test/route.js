@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getApiKeys } from "@/lib/localDb";
-import { UPDATER_CONFIG } from "@/shared/constants/config";
+import { UPDATER_CONFIG } from "@/shared/constants";
 
 // POST /api/models/test - Ping a single model via internal completions or embeddings
 export async function POST(request) {

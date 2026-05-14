@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card, Button, Input, Select, Toggle } from "@/shared/components";
-import { AI_PROVIDERS, AUTH_METHODS } from "@/shared/constants/config";
+import { AI_PROVIDERS, AUTH_METHODS } from "@/shared/constants";
 
 const providerOptions = Object.values(AI_PROVIDERS).map((p) => ({
   value: p.id,

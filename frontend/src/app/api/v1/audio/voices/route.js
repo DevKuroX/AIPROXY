@@ -1,4 +1,4 @@
-import { AI_PROVIDERS } from "@/shared/constants/providers";
+import { AI_PROVIDERS } from "@/shared/constants";
 
 // Provider → internal voices API. Edge/local-device share the generic endpoint.
 const PROVIDER_API = {

@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Card, CardSkeleton } from "@/shared/components";
-import { CLI_TOOLS } from "@/shared/constants/cliTools";
-import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants/models";
+import { CLI_TOOLS } from "@/shared/constants";
+import { getModelsByProviderId, PROVIDER_ID_TO_ALIAS } from "@/shared/constants";
 import { ClaudeToolCard, CodexToolCard, DroidToolCard, OpenClawToolCard, HermesToolCard, DefaultToolCard, OpenCodeToolCard, CoworkToolCard, CopilotToolCard, ClineToolCard, KiloToolCard, MitmLinkCard } from "./components";
-import { MITM_TOOLS } from "@/shared/constants/cliTools";
+import { MITM_TOOLS } from "@/shared/constants";
 
 const CLOUD_URL = process.env.NEXT_PUBLIC_CLOUD_URL;
 

@@ -1,4 +1,4 @@
-import { PROVIDER_MODELS } from "@/shared/constants/models";
+import { PROVIDER_MODELS } from "@/shared/constants";
 
 /**
  * Handle CORS preflight

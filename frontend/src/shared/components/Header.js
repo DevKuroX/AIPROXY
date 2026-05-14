@@ -8,8 +8,8 @@ import ProviderIcon from "@/shared/components/ProviderIcon";
 import HeaderMenu from "@/shared/components/HeaderMenu";
 import ThemeToggle from "@/shared/components/ThemeToggle";
 import { useHeaderSearchStore } from "@/store/headerSearchStore";
-import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants/config";
-import { MEDIA_PROVIDER_KINDS, AI_PROVIDERS } from "@/shared/constants/providers";
+import { OAUTH_PROVIDERS, APIKEY_PROVIDERS } from "@/shared/constants";
+import { MEDIA_PROVIDER_KINDS, AI_PROVIDERS } from "@/shared/constants";
 import { translate } from "@/i18n/runtime";
 
 const getPageInfo = (pathname) => {

@@ -5,7 +5,7 @@ import fs from "fs/promises";
 import path from "path";
 import os from "os";
 import crypto from "crypto";
-import { DEFAULT_PLUGINS, buildManagedMcpServers } from "@/shared/constants/coworkPlugins";
+import { DEFAULT_PLUGINS, buildManagedMcpServers } from "@/shared/constants";
 
 const PROVIDER = "gateway";
 

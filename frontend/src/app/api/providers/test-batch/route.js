@@ -6,7 +6,7 @@ import {
   APIKEY_PROVIDERS,
   OPENAI_COMPATIBLE_PREFIX,
   ANTHROPIC_COMPATIBLE_PREFIX,
-} from "@/shared/constants/providers";
+} from "@/shared/constants";
 import { testSingleConnection } from "../[id]/test/testUtils.js";
 
 function getAuthGroup(providerId, connection = null) {

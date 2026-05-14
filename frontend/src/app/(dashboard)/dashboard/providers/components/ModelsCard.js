@@ -3,8 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Card, Button, Modal } from "@/shared/components";
-import { getModelsByProviderId } from "@/shared/constants/models";
-import { getProviderAlias } from "@/shared/constants/providers";
+import { getModelsByProviderId } from "@/shared/constants";
+import { getProviderAlias } from "@/shared/constants";
 import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 // ── ModelRow ───────────────────────────────────────────────────

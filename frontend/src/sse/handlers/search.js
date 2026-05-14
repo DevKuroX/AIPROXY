@@ -6,7 +6,7 @@ import {
   isValidApiKey,
 } from "../services/auth.js";
 import { getSettings, getCombos } from "@/lib/localDb";
-import { AI_PROVIDERS, resolveProviderId } from "@/shared/constants/providers.js";
+import { AI_PROVIDERS, resolveProviderId } from "@/shared/constants";
 import { handleSearchCore } from "open-sse/handlers/search/index.js";
 import { errorResponse, unavailableResponse } from "open-sse/utils/error.js";
 import { HTTP_STATUS } from "open-sse/config/runtimeConfig.js";

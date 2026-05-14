@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { marked } from "marked";
-import { GITHUB_CONFIG } from "@/shared/constants/config";
+import { GITHUB_CONFIG } from "@/shared/constants";
 
 marked.setOptions({ gfm: true, breaks: true });
 

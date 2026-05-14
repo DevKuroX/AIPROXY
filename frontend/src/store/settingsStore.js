@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { CLIENT_STORE_TTL_MS } from "@/shared/constants/config";
+import { CLIENT_STORE_TTL_MS } from "@/shared/constants";
 
 const useSettingsStore = create((set, get) => ({
   settings: null,

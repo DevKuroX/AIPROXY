@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRequestDetails } from "@/lib/requestDetailsDb";
 import { getProviderNodes } from "@/lib/localDb";
-import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants/providers";
+import { AI_PROVIDERS, getProviderByAlias } from "@/shared/constants";
 
 /**
  * GET /api/usage/providers
