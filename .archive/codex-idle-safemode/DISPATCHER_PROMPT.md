@@ -8,13 +8,6 @@
 
 # DISPATCHER PROMPT
 
-> Default use: bounded interactive execution for one task.
->
-> Unattended exception: if the user explicitly activates unattended mode via
-> `AGENTS.md` Section 4 trigger phrases or the `aiproxy-autonomous-loop` skill,
-> this prompt's STOP/one-task language is superseded by the autonomous-loop
-> protocol: complete or mark `[!]`, then continue to the next planned task.
-
 ```
 Read and follow strictly:
 

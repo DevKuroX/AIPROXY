@@ -89,21 +89,6 @@ Run these commands after changes:
 
 # STOP CONDITIONS
 
-## Unattended Mode Interpretation
-
-In bounded mode, stop conditions mean stop and report to the user.
-
-In unattended mode, stop conditions are task-local block conditions. If any
-block condition is met:
-
-1. Revert task changes.
-2. Mark the task `[!]` in `TASK_STATUS.md`.
-3. Record the blocker in `LOOP_REPORT.md`.
-4. Continue to the next planned task.
-
-Do not halt the full loop unless the user interrupts, the plan is exhausted, or
-a critical system failure occurs.
-
 ## Success Condition
 
 ```
@@ -116,11 +101,7 @@ Task completed when:
 ## Block Condition
 
 ```
-Bounded mode: stop and report if:
-- <block condition 1>
-- <block condition 2>
-
-Unattended mode: mark `[!]` and continue if:
+Stop and report if:
 - <block condition 1>
 - <block condition 2>
 ```

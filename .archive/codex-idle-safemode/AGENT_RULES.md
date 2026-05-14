@@ -26,26 +26,6 @@ Migration = Behavior-preserving architecture change
 EXECUTE ONE TASK. STOP. AWAIT INSTRUCTION.
 ```
 
-### Unattended Mode Override
-
-When `AGENTS.md` Section 4 unattended trigger phrases are active, the
-autonomous-loop protocol overrides the bounded STOP behavior above:
-
-```
-EXECUTE ONE TASK. VERIFY. COMMIT OR MARK BLOCKED. CONTINUE.
-```
-
-In unattended mode, any instruction in this file that says STOP, await user
-instruction, or report for decision means:
-
-1. Finish the current task verification attempt.
-2. If the task cannot pass within scope, revert task changes.
-3. Mark the task `[!]` in `TASK_STATUS.md` with the blocker reason.
-4. Continue to the next eligible task.
-
-Only user interrupt, an empty plan, or critical system failure may end the
-unattended loop.
-
 Never:
 - Chain tasks
 - "Continue" after completion

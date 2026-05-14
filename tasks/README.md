@@ -25,7 +25,7 @@ Each task file is:
 
 | Phase | Objective | Tasks | Branch |
 |-------|-----------|-------|--------|
-| [Phase 0](phase-00/README.md) | Pre-Migration Inventory | 10 | `phase/0-inventory` |
+| [Phase 0](phase-00/README.md) | Pre-Migration Inventory | 11 | `phase/0-inventory` |
 | [Phase 1](phase-01/README.md) | Shared Contracts Stabilization | 8 | `phase/1-shared-contracts` |
 | [Phase 2](phase-02/README.md) | SQLite Dependency Isolation | 17 | `phase/2-sqlite-isolation` |
 | [Phase 3](phase-03/README.md) | Cohort A Route Proxy (15 routes) | 9 | `phase/3-cohort-a-proxy` |
@@ -57,6 +57,7 @@ P0 ──► P1 ──► P2 ──► P3 ──► P4 ──┐
 ```
 P0.9 (PM Decisions) ──► P3, P4, P5, P6
 P0.6 (Backend URL) ──► P2.2, T3.0
+T0.11 (Preflight Repair) ──► P1 resumes, P2, autonomous loop
 P2 (Replacement Clients) ──► P3, P6
 P4.9 (v1 Streaming) ──► P7
 P8.3 (SQLite Deletion) ──► Architecture Goal
@@ -118,7 +119,7 @@ Each task file follows this structure:
 
 | Phase | Critical Tasks | High Risk | Notes |
 |-------|----------------|-----------|-------|
-| P0 | T0.9 (PM Decisions) | T0.6, T0.8 | Blocks all downstream |
+| P0 | T0.9 (PM Decisions), T0.11 (Preflight Repair) | T0.6, T0.8 | Blocks all downstream |
 | P3 | None | T3.0, T3.3-T3.5 | Streaming critical |
 | P4 | T4.8, T4.9, T4.10, T4.11 | Multiple | v1/v1beta highest blast radius |
 | P5 | T5.9 | T5.3, T5.4, T5.6, T5.7 | Auth regression gate |

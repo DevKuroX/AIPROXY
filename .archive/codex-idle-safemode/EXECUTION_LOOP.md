@@ -12,26 +12,6 @@
 EXECUTE ONE TASK. STOP. AWAIT INSTRUCTION.
 ```
 
-## Unattended Mode Override
-
-This document defines bounded interactive execution by default. When
-`AGENTS.md` Section 4 unattended trigger phrases are active, this STOP rule is
-replaced by:
-
-```
-EXECUTE ONE TASK. VERIFY. COMMIT OR MARK BLOCKED. CONTINUE.
-```
-
-In unattended mode:
-
-- Do not ask whether to continue.
-- Do not wait for user clarification.
-- Treat any STOP / report / await instruction in this document or a task file
-  as a task-local block condition.
-- On task-local block: revert task changes, mark the task `[!]` in
-  `TASK_STATUS.md`, commit the status update, and continue to the next task.
-- Stop only for user interrupt, plan exhausted, or critical system failure.
-
 Do NOT:
 - Chain multiple tasks
 - "Continue" to next task
@@ -60,9 +40,9 @@ Maximum context load: 3 files
 Check task file section: `## Prerequisites`
 
 If ANY prerequisite not met:
-- Bounded mode: STOP, report blocker, await instruction.
-- Unattended mode: mark current task `[!]` with prerequisite blocker and
-  continue to the next eligible task.
+- STOP
+- Report blocker
+- Await instruction
 
 ---
 
@@ -151,9 +131,6 @@ Do NOT suggest improvements.
 
 AWAIT USER INSTRUCTION.
 
-Unattended mode exception: do continue to the next planned task after the
-current task is committed as `[x]` or marked `[!]`.
-
 ---
 
 # FORBIDDEN ACTIONS
@@ -181,8 +158,7 @@ During execution, NEVER:
 1. Read FIRST error only
 2. Check if error is in files you modified
 3. If YES: Fix YOUR change
-4. If NO: bounded mode STOP and report unrelated error; unattended mode mark
-   current task `[!]` with `cascade_outside_scope` and continue
+4. If NO: STOP, report unrelated error
 5. Do NOT fix errors in unrelated files
 
 ## Type Error
@@ -196,8 +172,7 @@ During execution, NEVER:
 
 1. Check if test covers your change
 2. If YES: Fix YOUR code
-3. If NO: bounded mode STOP and report unrelated failure; unattended mode mark
-   current task `[!]` and continue
+3. If NO: STOP, report unrelated failure
 
 ## Blocked
 
@@ -237,14 +212,10 @@ If you feel:
 - Tempted to "improve" code
 - Unsure about scope
 
-Bounded mode: STOP. Re-read:
+STOP. Re-read:
 1. Task file
 2. This execution loop
 3. Project constraints
-
-Unattended mode: make the conservative in-scope assumption, log it in
-`LOOP_REPORT.md`, and continue. If no conservative in-scope assumption exists,
-mark the task `[!]` and continue.
 
 ---
 

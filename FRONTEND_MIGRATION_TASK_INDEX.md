@@ -77,11 +77,13 @@ Read: P5 (Auth) must complete before P3 (Cohort A proxy) finalizes, because rout
 | T0.8 | Confirm Cohort A endpoints exist on backend (`curl` each `/api/admin/*`, `/api/auth/*`, etc.). Document missing endpoints. | `inventory/backend-coverage.md` | 🟠 |
 | T0.9 | Collect Appendix-A PM decisions from planning doc (7 questions: port, token storage, init/shutdown, cloud/tunnel/cli scope, locale, mitm, test scripts). | PM sign-off doc | 🔴 (blocks P3) |
 | T0.10 | Capture HAR fixtures for top 10 user flows (login, dashboard load, providers CRUD, keys CRUD, settings save, usage chart, chat stream, OAuth start, OAuth callback, logout). | `fixtures/before/*.har` | 🟡 |
+| T0.11 | Preflight repair before execution resumes: reconcile backend port references, task counts/status drift, missing authority docs, and final Next.js API route stance. | planning/status/doc reconciliation | 🔴 (blocks P1+) |
 
 **Exit criteria:**
 - All inventory files committed to repo (in `docs/migration/inventory/` or similar).
 - T0.6 decision documented and reflected in `lib/api.ts` and `STRUCTURE.md`.
 - T0.9 PM sign-off recorded.
+- T0.11 preflight repair complete: task counts match files, authority docs are not missing, and backend port/API-route stance is consistent.
 
 ---
 

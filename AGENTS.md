@@ -42,19 +42,7 @@ behavior; this file wins for **execution loop semantics only**.
 
 ---
 
-## 3. Default Mode — Bounded (interactive)
 
-When the user gives a task without unattended trigger phrases, follow
-`EXECUTION_LOOP.md` as written:
-
-```
-EXECUTE ONE TASK. STOP. AWAIT INSTRUCTION.
-```
-
-- Use `DISPATCHER_PROMPT.md` template format.
-- Use `TASK_EXECUTION_TEMPLATE.md` for the manifest.
-- One task = one commit.
-- BUILD_RULES.md Step 1: first root error only.
 
 ---
 

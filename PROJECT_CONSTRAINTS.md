@@ -287,15 +287,16 @@ These must be fixed SYSTEMATICALLY.
 
 # WHEN UNSURE
 
-STOP.
+Default (bounded mode): STOP. Ask for clarification.
 
-DO NOT:
-- assume architecture
-- improvise redesigns
-- create temporary hacks
-- invent systems
+Unattended mode (when AGENTS.md §4 trigger phrase is active): Log the assumption under "Assumptions Made" in LOOP_REPORT.md and continue. Do NOT stop. Do NOT ask. Make the most reasonable architectural choice that preserves 9router behavior parity.
 
-Ask for clarification instead.
+DO NOT in either mode:
+
+assume architecture
+improvise redesigns
+create temporary hacks
+invent systems
 
 ---
 

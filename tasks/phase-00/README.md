@@ -24,6 +24,7 @@
 | [T0.8](T0.8-backend-coverage-verification.md) | Backend coverage verification | `inventory/backend-coverage.md` | 🟠 |
 | [T0.9](T0.9-pm-decisions-collection.md) | PM decisions collection | PM sign-off doc | 🔴 |
 | [T0.10](T0.10-har-fixtures-collection.md) | HAR fixtures collection | `fixtures/before/*.har` | 🟡 |
+| [T0.11](T0.11-preflight-repair.md) | Preflight repair before execution resumes | planning/status/doc reconciliation | 🔴 |
 
 ---
 
@@ -32,3 +33,4 @@
 - [ ] All inventory files committed to repo
 - [ ] T0.6 decision documented and reflected in `lib/api.ts` and `STRUCTURE.md`
 - [ ] T0.9 PM sign-off recorded
+- [ ] T0.11 preflight repair complete before Phase 1 resumes

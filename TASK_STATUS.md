@@ -1,8 +1,8 @@
 # AIPROXY Migration Task Status
 
 > **Last Updated**: 2026-05-14
-> **Current Phase**: Phase 2 — SQLite Dependency Isolation
-> **Active Task**: T2.1
+> **Current Phase**: Phase 0 - Pre-Migration Inventory
+> **Active Task**: T0.1
 
 ---
 
@@ -10,52 +10,53 @@
 
 | Status | Meaning |
 |--------|---------|
-| `[ ]` | PENDING — Not started |
-| `[~]` | IN_PROGRESS — Currently executing |
-| `[x]` | DONE — Completed and verified |
-| `[!]` | BLOCKED — Cannot proceed |
-| `[-]` | SKIPPED — Explicitly excluded |
-| `[?]` | REGRESSION — Previously done, now broken |
+| `[ ]` | PENDING - Not started |
+| `[~]` | IN_PROGRESS - Currently executing |
+| `[x]` | DONE - Completed and verified |
+| `[!]` | BLOCKED - Cannot proceed |
+| `[-]` | SKIPPED - Explicitly excluded |
+| `[?]` | REGRESSION - Previously done, now broken |
 
 ---
 
-# Phase 0 — Pre-Migration Inventory
+# Phase 0 - Pre-Migration Inventory
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T0.1 | `[x]` | SQLite import inventory |
-| T0.2 | `[x]` | Legacy import inventory |
-| T0.3 | `[x]` | Stream import inventory |
-| T0.4 | `[x]` | Filesystem import inventory |
-| T0.5 | `[x]` | Route cohort classification |
-| T0.6 | `[x]` | Backend URL decision |
-| T0.7 | `[x]` | API Contract update |
-| T0.8 | `[x]` | Backend coverage verification |
-| T0.9 | `[x]` | PM decisions collection |
-| T0.10 | `[x]` | HAR fixtures collection |
-
-**Phase Status**: `[x]` COMPLETE
-
----
-
-# Phase 1 — Shared Contracts Stabilization
-
-| Task | Status | Notes |
-|------|--------|-------|
-| T1.1 | `[x]` | Constants import inventory |
-| T1.2 | `[x]` | Constants index normalization |
-| T1.3 | `[x]` | Constants source comments |
-| T1.4 | `[x]` | API contracts interfaces |
-| T1.5 | `[x]` | Migrate duplicate types |
-| T1.6 | `[x]` | TypeScript check |
-| T1.7 | `[ ]` | Build check |
-| T1.8 | `[ ]` | Phase 1 smoke test |
+| T0.1 | `[ ]` | SQLite import inventory |
+| T0.2 | `[ ]` | Legacy import inventory |
+| T0.3 | `[ ]` | Stream import inventory |
+| T0.4 | `[ ]` | Filesystem import inventory |
+| T0.5 | `[ ]` | Route cohort classification |
+| T0.6 | `[ ]` | Backend URL decision |
+| T0.7 | `[ ]` | API Contract update |
+| T0.8 | `[ ]` | Backend coverage verification |
+| T0.9 | `[ ]` | PM decisions collection |
+| T0.10 | `[ ]` | HAR fixtures collection |
+| T0.11 | `[ ]` | Preflight repair before execution resumes |
 
 **Phase Status**: `[~]` IN PROGRESS
 
 ---
 
-# Phase 2 — SQLite Dependency Isolation
+# Phase 1 - Shared Contracts Stabilization
+
+| Task | Status | Notes |
+|------|--------|-------|
+| T1.1 | `[ ]` | Constants import inventory |
+| T1.2 | `[ ]` | Constants index normalization |
+| T1.3 | `[ ]` | Constants source comments |
+| T1.4 | `[ ]` | API contracts interfaces |
+| T1.5 | `[ ]` | Migrate duplicate types |
+| T1.6 | `[ ]` | TypeScript check |
+| T1.7 | `[ ]` | Build check |
+| T1.8 | `[ ]` | Phase 1 smoke test |
+
+**Phase Status**: `[ ]` NOT STARTED
+
+---
+
+# Phase 2 - SQLite Dependency Isolation
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -81,7 +82,7 @@
 
 ---
 
-# Phase 3 — Cohort A Route Proxy
+# Phase 3 - Cohort A Route Proxy
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -99,7 +100,7 @@
 
 ---
 
-# Phase 4 — Cohort B Route Audit
+# Phase 4 - Cohort B Route Audit
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -119,7 +120,7 @@
 
 ---
 
-# Phase 5 — Auth + Token Unification
+# Phase 5 - Auth + Token Unification
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -137,7 +138,7 @@
 
 ---
 
-# Phase 6 — Legacy Module Deprecation
+# Phase 6 - Legacy Module Deprecation
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -156,7 +157,7 @@
 
 ---
 
-# Phase 7 — Streaming Normalization
+# Phase 7 - Streaming Normalization
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -179,7 +180,7 @@
 
 ---
 
-# Phase 8 — SQLite Engine Removal
+# Phase 8 - SQLite Engine Removal
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -196,13 +197,14 @@
 
 ---
 
-# Phase 9 — Dual App Shell Collapse
+# Phase 9 - Dual App Shell Collapse
 
 | Task | Status | Notes |
 |------|--------|-------|
 | T9.1 | `[ ]` | Delete layout.js |
 | T9.2 | `[ ]` | Delete page.js |
 | T9.3 | `[ ]` | Verify single app shell |
+| T9.4 | `[ ]` | Delete dual shell JS |
 | T9.5 | `[ ]` | Remove .js imports for layout |
 | T9.6 | `[ ]` | Verify TypeScript config |
 | T9.7 | `[ ]` | Phase 9 exit verification |
@@ -211,11 +213,11 @@
 
 ---
 
-# Phase 10 — Dead Code Cleanup
+# Phase 10 - Dead Code Cleanup
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T10.1 | `[x]` | Dependency cleanup |
+| T10.1 | `[ ]` | Dependency cleanup |
 | T10.2 | `[ ]` | Run depcheck |
 | T10.3 | `[ ]` | Run ts-prune |
 | T10.4 | `[ ]` | Remove unused files |
@@ -227,16 +229,16 @@
 
 ---
 
-# Phase 11 — Architecture Lock
+# Phase 11 - Architecture Lock
 
 | Task | Status | Notes |
 |------|--------|-------|
 | T11.1 | `[ ]` | Create frontend ARCHITECTURE.md |
 | T11.2 | `[ ]` | Update STRUCTURE.md |
 | T11.3 | `[ ]` | Update FRONTEND_REFACTOR_TRACKER.md |
-| T11.4 | `[x]` | CI architecture enforcement |
+| T11.4 | `[ ]` | CI architecture enforcement |
 | T11.5 | `[ ]` | Add pre-commit hook |
-| T11.6 | `[x]` | Feature parity verification |
+| T11.6 | `[ ]` | Feature parity verification |
 | T11.7 | `[ ]` | Run HAR replay verification |
 | T11.8 | `[ ]` | Final streaming parity test |
 | T11.9 | `[ ]` | Sign-off |
@@ -249,8 +251,8 @@
 
 | Phase | Total | Done | Progress |
 |-------|-------|------|----------|
-| P0 | 10 | 10 | 100% |
-| P1 | 8 | 6 | 75% |
+| P0 | 11 | 0 | 0% |
+| P1 | 8 | 0 | 0% |
 | P2 | 17 | 0 | 0% |
 | P3 | 9 | 0 | 0% |
 | P4 | 11 | 0 | 0% |
@@ -259,14 +261,16 @@
 | P7 | 14 | 0 | 0% |
 | P8 | 8 | 0 | 0% |
 | P9 | 7 | 0 | 0% |
-| P10 | 7 | 1 | 14% |
-| P11 | 9 | 2 | 22% |
-| **TOTAL** | **119** | **19** | **16%** |
+| P10 | 7 | 0 | 0% |
+| P11 | 9 | 0 | 0% |
+| **TOTAL** | **120** | **0** | **0%** |
 
 ---
 
 # Next Tasks
 
-1. **T1.7** — Build check (Phase 1 incomplete)
-2. **T1.8** — Phase 1 smoke test
-3. **T2.1** — Required clients inventory (Phase 2 start)
+1. **T0.1** - SQLite import inventory
+2. **T0.2** - Legacy module import inventory
+3. **T0.3** - Streaming module import inventory
+4. **T0.4** - Filesystem import inventory
+5. **T0.5** - Route cohort classification

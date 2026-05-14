@@ -128,7 +128,7 @@ Activate this skill when ANY of these are true:
 When activated, output exactly:
 
 ```
-[aiproxy-autonomous-loop] active — Codex built-in planning disabled.
+[autonomous-loop] active — Codex built-in planning disabled.
 [mode] unattended — loop continues through failures.
 ```
 

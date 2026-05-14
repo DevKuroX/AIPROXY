@@ -1,0 +1,90 @@
+$aiproxy-autonomous-loop execute
+
+Baca dan ikuti file .codex/skills/aiproxy-autonomous-loop/SKILL.md sebagai
+operating manual. Output line pertama HARUS:
+
+    [autonomous-loop] active - Codex built-in planning disabled.
+    [mode] unattended - loop continues through failures.
+
+Mode: UNATTENDED. Saya tinggal kerja.
+
+Jalankan SEMUA tanpa konfirmasi.
+
+0) BASELINE SAFETY
+   - Kalau working tree dirty SEBELUM loop/task pertama, JANGAN jalankan
+     git restore atau git clean.
+   - Kalau baseline belum committed, berhenti hanya untuk baseline commit manual.
+   - Setelah baseline committed, baru mulai loop.
+   - Di tengah task, kalau task gagal dan perlu revert, boleh pakai
+     git restore . && git clean -fd untuk membuang perubahan task itu saja.
+
+1) PHASE 1 - PLAN (read-only)
+   - Baca: PROJECT_CONSTRAINTS.md, AGENT_RULES.md, BUILD_RULES.md,
+     REF_IMPLEMENTATION_RULES.md, API_CONTRACT.md, TASK_STATUS.md.
+   - Cari "Current Phase" di TASK_STATUS.md.
+   - Kumpulkan semua task [ ] dan [~] di phase itu.
+   - Auto-create/checkout branch phase/<N>-<slug> kalau belum.
+   - cd frontend && npm install kalau node_modules kosong.
+   - Emit plan sesuai SKILL.md section 1.3.
+   - Emit: [plan validated] entering execution loop.
+
+2) PHASE 2 - EXECUTION LOOP (never stops)
+   FOR setiap task di plan, strict urut:
+   a. Pre-flight:
+      - Kalau dirty dari perubahan task sebelumnya yang gagal:
+        git restore . && git clean -fd, lalu mark [!] dan lanjut.
+      - Jangan hapus perubahan baseline yang sudah ada sebelum loop dimulai.
+   b. Baca tasks/phase-<N>/T<N>.<x>-*.md.
+   c. Build manifest dari TASK_EXECUTION_TEMPLATE.md.
+   d. Implement HANYA di Allowed Files.
+   e. Verification:
+        npm install (kalau package.json/lockfile berubah)
+        npm run typecheck || npx tsc --noEmit
+        npm run lint
+        rm -rf frontend/.next && npm run build
+        <task-specific verification>
+   f. GREEN:
+        commit T<N>.<x>: <title>
+        flip [x] di TASK_STATUS.md
+        commit terpisah chore(status): T<N>.<x> done
+        log: [loop] T<N>.<x> ok (done/total, ok=n, blocked=m)
+   g. RED:
+        retry max 5x pakai BUILD_RULES + error table SKILL.md
+        masih red? git restore . && git clean -fd
+        flip [!] di TASK_STATUS.md dengan alasan = first root error
+        commit chore(status): T<N>.<x> blocked - <reason>
+        log: [loop] T<N>.<x> blocked
+        LANJUT TASK BERIKUTNYA. JANGAN BERHENTI.
+
+3) SMOKE TEST
+   Setelah semua task diproses, jalankan timeout 45s npm run dev sebagai
+   bounded smoke test. Log hasil ke LOOP_REPORT.md. Smoke fail tidak undo task.
+
+4) LOOP_REPORT.md
+   Tulis di root repo: Summary, Completed, Blocked dengan first root error
+   per task, Smoke Test, Assumptions.
+   Commit: chore: loop report <ISO timestamp>.
+   Push branch ke origin.
+
+5) FINAL
+   Emit final:
+   [loop] FINISHED - <n_ok> ok, <n_blocked> blocked, see LOOP_REPORT.md
+
+ATURAN BAJA:
+- JANGAN nanya konfirmasi apapun selama loop.
+- JANGAN berhenti karena task fail. Mark [!], lanjut.
+- JANGAN pakai @ts-ignore, @ts-expect-error, as any, eslint-disable, atau
+  comment-out test.
+- JANGAN bikin ulang file yang sengaja dihapus seperti SQLite shim atau dual
+  shell.
+- JANGAN modify tasks/ kecuali TASK_STATUS.md dan task/status docs yang
+  eksplisit Allowed Files task aktif.
+- JANGAN modify *_RULES.md, *_CONSTRAINTS.md, ARCHITECTURE.md,
+  EXECUTION_LOOP.md, atau backend/ kecuali task aktif eksplisit mengizinkan
+  dokumen tersebut (contoh: T0.11 preflight repair).
+- JANGAN push ke main. Push hanya ke phase/<N>-<slug>.
+- JANGAN tinggalkan working tree dirty antar task.
+
+Mulai sekarang hanya kalau baseline sudah committed.
+Loop selesai = semua task di phase aktif [x] atau [!] dan LOOP_REPORT.md
+ter-commit.
