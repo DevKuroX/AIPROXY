@@ -1,10 +1,38 @@
 # AIPROXY API Contract
 
-Backend base URL:
+## Backend Base URLs
+
+### Server-Side (Next.js API Routes)
 
 ```env
-http://localhost:1432
+BACKEND_INTERNAL_URL=http://localhost:1432
 ```
+
+**Used by**: `src/lib/proxy.ts`, `src/app/api/*` routes (server-side fetch)
+
+**Environment Variable**: Read from `process.env.NEXT_PUBLIC_API_URL` with fallback to `http://localhost:1432`
+
+### Client-Side (Browser Direct)
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:1432
+```
+
+**Used by**: Browser-side fetch calls (if any direct browser-to-backend communication)
+
+**Note**: Currently, all API calls go through Next.js API routes (server-side proxy pattern). Direct browser-to-backend calls are not used in the current architecture.
+
+### Rules
+
+- Backend URLs are authoritative
+- Frontend MUST NOT hardcode alternative URLs
+- Environment variables take precedence over code defaults
+- Port 1432 is the canonical AIPROXY backend port
+- Port 20128 is legacy 9router default (not used in AIPROXY)
+
+---
+
+## Contract Principles
 
 Frontend MUST follow these contracts exactly.
 

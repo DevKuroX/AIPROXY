@@ -29,7 +29,7 @@
 | T0.4 | `[x]` | Filesystem import inventory |
 | T0.5 | `[x]` | Route cohort classification |
 | T0.6 | `[x]` | Backend URL decision |
-| T0.7 | `[ ]` | API Contract update |
+| T0.7 | `[x]` | API Contract update |
 | T0.8 | `[ ]` | Backend coverage verification |
 | T0.9 | `[ ]` | PM decisions collection |
 | T0.10 | `[ ]` | HAR fixtures collection |
