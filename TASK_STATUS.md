@@ -29,7 +29,7 @@
 | T0.4 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
 | T0.5 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
 | T0.6 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
-| T0.7 | `[ ]` | API Contract update |
+| T0.7 | `[!]` | blocked - prerequisite_blocked: T0.6 backend URL decision not complete |
 | T0.8 | `[ ]` | Backend coverage verification |
 | T0.9 | `[ ]` | PM decisions collection |
 | T0.10 | `[ ]` | HAR fixtures collection |
