@@ -1,4 +1,7 @@
 // Pricing rates for AI models — all rates in $/1M tokens
+// SOURCE: FRONTEND_ONLY - Hardcoded pricing data
+// BACKEND CONTRACT: /api/v1/pricing - Pricing should come from backend
+// MIGRATION: Will be replaced with backend API pricing data
 //
 // Fallback order (first match wins):
 //   1. PROVIDER_PRICING[provider][model]  — provider-specific override

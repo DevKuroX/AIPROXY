@@ -1,4 +1,6 @@
 // MITM Tools — IDE tools intercepted via MITM proxy
+// SOURCE: FRONTEND_ONLY - Hardcoded frontend configuration
+// MIGRATION: Will remain frontend-only (UI configuration)
 export const MITM_TOOLS = {
   antigravity: {
     id: "antigravity",

@@ -2,7 +2,7 @@
 
 > **Last Updated**: 2026-05-14
 > **Current Phase**: Phase 1 — Shared Contracts Stabilization
-> **Active Task**: T1.2
+> **Active Task**: T1.3
 
 ---
 
@@ -44,7 +44,7 @@
 |------|--------|-------|
 | T1.1 | `[x]` | Constants import inventory |
 | T1.2 | `[x]` | Constants index normalization |
-| T1.3 | `[ ]` | Constants source comments |
+| T1.3 | `[x]` | Constants source comments |
 | T1.4 | `[ ]` | API contracts interfaces |
 | T1.5 | `[ ]` | Migrate duplicate types |
 | T1.6 | `[ ]` | TypeScript check |

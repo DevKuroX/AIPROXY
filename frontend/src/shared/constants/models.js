@@ -1,4 +1,7 @@
 // Import directly from file to avoid pulling in server-side dependencies via index.js
+// SOURCE: open-sse/config/providerModels.js - External dependency
+// BACKEND CONTRACT: /api/v1/models - Model data should come from backend
+// MIGRATION: Will be replaced with backend API model data
 export {
   PROVIDER_MODELS,
   getProviderModels,

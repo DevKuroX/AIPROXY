@@ -1,6 +1,8 @@
 import pkg from "../../../package.json" with { type: "json" };
 
 // App configuration
+// SOURCE: FRONTEND_ONLY - Frontend application configuration
+// BACKEND CONTRACT: None - frontend-only settings
 export const APP_CONFIG = {
   name: "9Router Proxy",
   description: "AI Infrastructure Management",

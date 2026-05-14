@@ -1,4 +1,7 @@
 // Provider definitions
+// SOURCE: FRONTEND_ONLY - Hardcoded provider definitions
+// BACKEND CONTRACT: /api/v1/providers - Provider data should come from backend
+// MIGRATION: These definitions will be replaced with backend API data
 
 // Free Providers (kiro first, iflow last)
 export const FREE_PROVIDERS = {
