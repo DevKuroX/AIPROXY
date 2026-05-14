@@ -31,7 +31,7 @@
 | T0.6 | `[!]` | blocked - cascade_outside_scope: frontend/login-test.js:1:22 @typescript-eslint/no-require-imports |
 | T0.7 | `[!]` | blocked - prerequisite_blocked: T0.6 backend URL decision not complete |
 | T0.8 | `[!]` | blocked - prerequisite_blocked: T0.6 backend URL decision not complete |
-| T0.9 | `[ ]` | PM decisions collection |
+| T0.9 | `[!]` | blocked - external_pm_signoff_missing: PM decisions cannot be approved unattended |
 | T0.10 | `[ ]` | HAR fixtures collection |
 | T0.11 | `[ ]` | Preflight repair before execution resumes |
 
