@@ -227,7 +227,7 @@ Edit `backend/internal/rtk/filters/`:
 **Why RTK + Caveman?**
 - RTK: compress tool output (60-90% savings) — no LLM cost
 - Caveman: terse prompts reduce output tokens — no LLM cost
-- Both match 9router feature set
+- 
 
 ---
 
