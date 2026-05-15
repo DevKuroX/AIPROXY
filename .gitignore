@@ -70,3 +70,6 @@ backend/_ref/
 
 # HAR fixtures (may contain secrets)
 fixtures/
+_ref/
+backend/bin/
+.sisyphus/

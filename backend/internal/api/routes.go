@@ -89,7 +89,42 @@ func (r *Router) Routes() *http.ServeMux {
 	proxyMux.HandleFunc("POST /v1/fetch", v1.HandleFetch)                             // ref: open-sse/handlers/fetch/index.js
 	proxyMux.HandleFunc("POST /v1/embeddings", v1.HandleEmbeddings)                   // ref: open-sse/handlers/embeddingsCore.js
 
+	// Anthropic /v1/messages endpoint
+	proxyMux.HandleFunc("POST /v1/messages", router.HandleAnthropicMessages)
+
+	// Conversation compact endpoint
+	proxyMux.HandleFunc("POST /v1/responses/compact", router.HandleCompact)
+
+	// Model discovery
+	proxyMux.HandleFunc("GET /v1/models", router.HandleListModels)
+	proxyMux.HandleFunc("GET /v1/models/chat", router.HandleListModels)
+	proxyMux.HandleFunc("GET /v1/models/image", router.HandleListImageModels)
+	proxyMux.HandleFunc("GET /v1/models/tts", router.HandleListTTSModels)
+	proxyMux.HandleFunc("GET /v1/models/embedding", router.HandleListEmbeddingModels)
+	proxyMux.HandleFunc("GET /v1/models/web", router.HandleListWebModels)
+	proxyMux.HandleFunc("GET /v1/models/stt", router.HandleListSTTModels)
+
 	mux.Handle("/v1/", apiKeyMiddleware(proxyMux))
+
+	// Usage/quota endpoint for Kiro
+	usageHandler := NewUsageHandler(router.GetGlobalPool())
+	mux.HandleFunc("GET /api/usage/kiro", usageHandler.GetKiroUsage)
+
+	// Proxy API
+	if p := router.GetProxyAPI(); p != nil {
+		proxyAPI := p.(*ProxyAPI)
+		mux.HandleFunc("GET /api/proxies", proxyAPI.ListProxies)
+		mux.HandleFunc("POST /api/proxies", proxyAPI.AddProxy)
+		mux.HandleFunc("DELETE /api/proxies/{id}", proxyAPI.DeleteProxy)
+		mux.HandleFunc("GET /api/proxy-pools", proxyAPI.ListPools)
+		mux.HandleFunc("POST /api/proxy-pools", proxyAPI.CreatePool)
+		mux.HandleFunc("DELETE /api/proxy-pools/{id}", proxyAPI.DeletePool)
+		mux.HandleFunc("POST /api/proxy-pools/{id}/test", proxyAPI.TestPool)
+		mux.HandleFunc("GET /api/proxy/settings", proxyAPI.GetSettings)
+		mux.HandleFunc("POST /api/proxy/settings", proxyAPI.UpdateSettings)
+		mux.HandleFunc("POST /api/scraper/start", proxyAPI.StartScraper)
+		mux.HandleFunc("GET /api/scraper/progress", proxyAPI.ScraperProgress)
+	}
 
 	return mux
 }

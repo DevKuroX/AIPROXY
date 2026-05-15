@@ -1,3 +1,0 @@
-[submodule "backend/_ref/9router"]
-	path = backend/_ref/9router
-	url = https://github.com/decolua/9router.git
