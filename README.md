@@ -215,8 +215,7 @@ Edit `backend/internal/rtk/filters/`:
 
 **Why model format is "provider/model"**?
 - Routing key = provider prefix, model name = what provider receives
-- Same as 9router, OpenAI's API design
-
+- 
 **Why memory-first for account pool?**
 - Zero DB latency per request
 - DB only hit on startup + periodic sync (planned)
