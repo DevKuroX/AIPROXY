@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/DevKuroX/AIPROXY/internal/errs"
@@ -23,28 +22,20 @@ import (
 	resptrans "github.com/DevKuroX/AIPROXY/internal/translator/response"
 )
 
-var (
-	geminiWebSession     *geminiweb.Session
-	geminiWebSessionMu   sync.Mutex
-)
-
-func getGeminiWebSession() *geminiweb.Session {
-	geminiWebSessionMu.Lock()
-	defer geminiWebSessionMu.Unlock()
-
-	if geminiWebSession == nil {
-		cookie1 := os.Getenv("GEMINI_SECURE_1PSID")
-		cookie2 := os.Getenv("GEMINI_SECURE_1PSIDTS")
-		proxy := os.Getenv("GEMINI_PROXY")
-		if proxy == "" {
-			proxy = os.Getenv("PROXY_URL")
-		}
-
-		if cookie1 != "" && cookie2 != "" {
-			geminiWebSession = geminiweb.NewSession(cookie1, cookie2, proxy)
-		}
+// getGeminiWebCookies returns Gemini cookies from account (pool) or env vars.
+func getGeminiWebCookies(account *pool.Account) (string, string) {
+	if account != nil && account.AccessToken != "" && account.AccessToken != "virtual" {
+		return account.AccessToken, account.RefreshToken
 	}
-	return geminiWebSession
+	return os.Getenv("GEMINI_SECURE_1PSID"), os.Getenv("GEMINI_SECURE_1PSIDTS")
+}
+
+func getGeminiProxy() string {
+	proxy := os.Getenv("GEMINI_PROXY")
+	if proxy == "" {
+		proxy = os.Getenv("PROXY_URL")
+	}
+	return proxy
 }
 
 var globalPool *pool.Pool
@@ -308,7 +299,7 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 		return
 	}
 
-	_, modelName := ParseModel(req.Model)
+	providerID, modelName := ParseModel(req.Model)
 	if err := refreshIfNeeded(&providerCfg, account); err != nil {
 		writeSSE(w, flusher, map[string]interface{}{"error": err.Error()})
 		writeSSE(w, flusher, "[DONE]")
@@ -326,9 +317,18 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 	switch providerCfg.Format {
 
 	case providers.FormatGeminiWeb:
-		session := getGeminiWebSession()
-		if session == nil {
-			writeSSE(w, flusher, map[string]interface{}{"error": "gemini-web: not configured. Set GEMINI_SECURE_1PSID and GEMINI_SECURE_1PSIDTS env vars"})
+		cookie1, cookie2 := getGeminiWebCookies(account)
+		if cookie1 == "" || cookie2 == "" {
+			writeSSE(w, flusher, map[string]interface{}{"error": "gemini-web: not configured. Set GEMINI_SECURE_1PSID and GEMINI_SECURE_1PSIDTS env vars or add gemini-web accounts to pool"})
+			writeSSE(w, flusher, "[DONE]")
+			return
+		}
+		session := geminiweb.NewSession(cookie1, cookie2, getGeminiProxy())
+		if err := session.Init(); err != nil {
+			if account != nil && account.ID != providerID {
+				globalPool.MarkError(account.ID)
+			}
+			writeSSE(w, flusher, map[string]interface{}{"error": fmt.Sprintf("gemini-web auth failed: %v", err)})
 			writeSSE(w, flusher, "[DONE]")
 			return
 		}
@@ -349,15 +349,6 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 		}
 		if userContent == "" {
 			userContent = "Hello"
-		}
-
-		// Initialize session if needed
-		if !session.IsAuthenticated() {
-			if err := session.Init(); err != nil {
-				writeSSE(w, flusher, map[string]interface{}{"error": fmt.Sprintf("gemini-web auth failed: %v", err)})
-				writeSSE(w, flusher, "[DONE]")
-				return
-			}
 		}
 
 		err := session.SendChatStream(userContent, modelName, func(chunk geminiweb.GeminiResponse) {
@@ -546,8 +537,13 @@ func prepareChat(ctx context.Context, modelStr string) (providers.ProviderConfig
 		return providers.ProviderConfig{}, nil, fmt.Errorf("unknown provider: %s", providerID)
 	}
 
-	// For noAuth and cookie providers, create virtual account (no DB row needed)
+	// For noAuth and cookie providers, try pool first then virtual account
 	if providerCfg.AuthType == providers.AuthTypeNone || providerCfg.AuthType == providers.AuthTypeCookie {
+		if providerCfg.AuthType == providers.AuthTypeCookie && globalPool != nil {
+			if account, err := globalPool.GetAccount(providerID); err == nil {
+				return providerCfg, account, nil
+			}
+		}
 		virtualAccount := &pool.Account{
 			ID:          providerID,
 			Provider:    providerID,
@@ -626,14 +622,13 @@ func callProviderAPI(ctx context.Context, cfg *providers.ProviderConfig, model s
 		}
 
 	case providers.FormatGeminiWeb:
-		session := getGeminiWebSession()
-		if session == nil {
-			return nil, fmt.Errorf("gemini-web not configured: set GEMINI_SECURE_1PSID and GEMINI_SECURE_1PSIDTS env vars")
+		cookie1, cookie2 := getGeminiWebCookies(account)
+		if cookie1 == "" || cookie2 == "" {
+			return nil, fmt.Errorf("gemini-web not configured: set GEMINI_SECURE_1PSID and GEMINI_SECURE_1PSIDTS env vars or add gemini-web accounts to pool")
 		}
-		if !session.IsAuthenticated() {
-			if err := session.Init(); err != nil {
-				return nil, fmt.Errorf("gemini-web auth failed: %v", err)
-			}
+		session := geminiweb.NewSession(cookie1, cookie2, getGeminiProxy())
+		if err := session.Init(); err != nil {
+			return nil, fmt.Errorf("gemini-web auth failed: %v", err)
 		}
 
 		userContent := ""

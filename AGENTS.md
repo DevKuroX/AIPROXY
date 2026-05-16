@@ -70,6 +70,40 @@ AuthTypeCookie  → for cookie-based providers (grok-web, perplexity-web)
 - `StateRateLimited` → 429 received, cooldown then back to active
 - `StateExhausted` → credit = 0%, skip until quota reset
 
+**Gemini Web Response Parser** (`backend/internal/geminiweb/response.go`):
+
+  The Gemini Web API uses a **length-prefixed frame protocol**, NOT newline-delimited JSON.
+  Response format: `)]}'\n\n{digits}\n{json}\n` where `digits` = UTF-16 code unit count of `\n{json}\n`.
+
+  **Bugs found and fixed:**
+
+  1. **Frame boundary off-by-1** — Counting UTF-16 from `nl+1` (after the `\n` following digits) is WRONG. The leading `\n` IS counted in the length. Fix: count from `nl` (the `\n` after digits), then strip the leading `\n` from the extracted frame.
+
+  2. **Security prefix** — Stripping `)]}'` via `\n\n` search is WRONG. Use exact 4-char prefix check: `strings.HasPrefix(content, ")]}'")` then `content = strings.TrimLeft(content[4:], " \t\r\n")`.
+
+  3. **bufio.Scanner destroys frames** — Scanner strips `\n` delimiters, breaking length-precise frame parsing. Fix: use raw `io.Read` byte buffer + `strings.Builder` accumulator.
+
+  4. **TrimSpace strips counted newline** — `strings.TrimSpace()` removes trailing `\n` that's counted in the frame length. Fix: use `TrimLeft` only.
+
+  5. **`candData[8]==[1]` is NOT a Done indicator** — This is a standard flag present on ALL text frames. Checking it causes `Done=true` on the first text frame, terminating the stream prematurely. Fix: remove this check entirely. Use `"e"` frame and `"di"` frame for Done detection.
+
+  6. **Streaming deadlock** — Without `return nil` after `chunk.Done==true` in ParseStream(), Gemini keeps the HTTP connection alive forever since there's no natural end-of-stream marker. Fix: `return nil` when `chunk.Done` is true.
+
+  7. **Wrong tuple length check** — `len(tuple) < 4` rejects valid frames (real Gemini tuples have 3 elements). Fix: `len(tuple) < 1`.
+
+  8. **Inner JSON marshaling** — The inner request must be marshaled to a JSON STRING before embedding in `f.req` payload. Python ref: `json.dumps(inner_req_list)` produces a string, not an object. Fix: `string(innerJSON)` instead of passing `innerReq` as object.
+
+  **Frame types in response:**
+  - `"wrb.fr"` or `"wra"` — Response wrapper. Index `[2]` contains inner JSON payload string. Parse with `parseInnerPayload()` to extract text from `payload[4]` (candidates).
+  - `"di"` — Done indicator. Index `[1]` contains a count value. Check `v >= 2` (not `v == 2`, actual values are large like 4935).
+  - `"e"` — End-of-stream. Format: `["e", 4, null, null, 137]`. Sets `Done=true`.
+
+  **Image upload** (`backend/internal/geminiweb/image_test.go`):
+  - Upload to `POST https://content-push.googleapis.com/upload` with multipart form-data
+  - Headers: `X-Tenant-Id: bard-storage`, `Push-ID: feeds/mcudyrk2a4khkz`
+  - Response body IS the uploaded URL (e.g. `/contrib_service/ttl_1d/...`)
+  - Embed in `messageContent[3]` as `[[[uploadedURL], filename]]` (triple-nested array for single file)
+
 **Proxy Selection**: ProxyManager.SelectProxy() picks lowest-latency alive proxy. Per-provider toggle in ProxySettings.
 
 **RTK Settings**: `rtkEnabled=true` by default (compresses tool output). `cavemanEnabled=false` by default (terse prompts off). Toggle via `POST /api/admin/settings`.

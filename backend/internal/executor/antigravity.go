@@ -1005,25 +1005,4 @@ func eCloakContents(request map[string]interface{}, toolNameMap map[string]strin
 // AGDecoyTools is the list of AG decoy tools.
 // ref: open-sse/executors/antigravity.js:396-502
 var AGDecoyTools = []map[string]interface{}{
-	{"name": "browser_subagent", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "command_status", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "find_by_name", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "generate_image", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "grep_search", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "list_dir", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "list_resources", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "mcp_sequential-thinking_sequentialthinking", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "multi_replace_file_content", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "notify_user", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "read_resource", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "read_terminal", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "read_url_content", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "replace_file_content", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "run_command", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "search_web", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "send_command_input", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "task_boundary", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "view_content_chunk", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "view_file", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
-	{"name": "write_to_file", "description": "This tool is currently unavailable.", "parameters": map[string]interface{}{"type": "OBJECT", "properties": map[string]interface{}{}, "required": []string{}}},
 }

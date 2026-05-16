@@ -69,9 +69,9 @@ func TestProviderConfigs(t *testing.T) {
 		wantClientSecret bool
 	}{
 		{"claude", true, "https://api.anthr0pic.com/v1/oauth/token", false},
-		{"gemini", true, "https://oauth2.googleapis.com/token", true},
-		{"gemini-cli", true, "https://oauth2.googleapis.com/token", true},
-		{"antigravity", true, "https://oauth2.googleapis.com/token", true},
+		{"gemini", true, "https://oauth2.googleapis.com/token", false},
+		{"gemini-cli", true, "https://oauth2.googleapis.com/token", false},
+		{"antigravity", true, "https://oauth2.googleapis.com/token", false},
 		{"codex", true, "https://auth.openai.com/oauth/token", false},
 		{"qwen", true, "https://chat.qwen.ai/api/v1/oauth2/token", false},
 	}

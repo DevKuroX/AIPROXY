@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -1016,7 +1017,7 @@ func (s *UsageService) getCodexQuota(ctx context.Context, accessToken string) (*
 // getKiroQuota fetches Kiro (AWS CodeWhisperer) usage.
 // ref: 9router/open-sse/services/usage.js:738-857
 func (s *UsageService) getKiroQuota(ctx context.Context, accessToken string, providerData map[string]any) (*ProviderQuota, error) {
-	profileArn := "arn:aws:codewhisperer:us-east-1:638616132270:profile/AAAACCCCXXXX"
+	profileArn := os.Getenv("KIRO_PROFILE_ARN")
 	if pa, ok := providerData["profileArn"].(string); ok && pa != "" {
 		profileArn = pa
 	}

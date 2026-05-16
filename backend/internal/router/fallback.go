@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -142,6 +143,10 @@ func getQuotaCooldown(backoffLevel int) time.Duration {
 // Config-driven: matches ERROR_RULES top-to-bottom (text rules first, then status).
 // ref: open-sse/services/accountFallback.js:23-50
 func CheckFallbackError(status int, errorText string, backoffLevel int) FallbackResult {
+	// 200 = success, never fallback
+	if status == 200 && errorText == "" {
+		return FallbackResult{ShouldFallback: false}
+	}
 	lowerError := ""
 	if errorText != "" {
 		lowerError = strings.ToLower(errorText)
@@ -327,7 +332,5 @@ func FormatRetryAfter(rateLimitedUntil time.Time) string {
 }
 
 func formatDuration(val int, unit string) string {
-	return strings.TrimSuffix(strings.TrimSuffix(
-		strings.Replace(strings.Replace(string(rune('0'+val/10))+string(rune('0'+val%10)), "0", "", 1), "0", "", 1),
-		" "), unit) + unit
+	return strconv.Itoa(val) + unit
 }

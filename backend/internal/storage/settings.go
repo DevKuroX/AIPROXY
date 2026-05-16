@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 var ErrSettingNotFound = errors.New("setting not found")
@@ -15,7 +17,7 @@ func (db *DB) GetSetting(ctx context.Context, key string) (string, error) {
 		key,
 	).Scan(&value)
 
-	if errors.Is(err, ErrSettingNotFound) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return "", ErrSettingNotFound
 	}
 	if err != nil {

@@ -248,6 +248,71 @@ func (p *Pool) Count(provider string) int {
 	return len(accounts)
 }
 
+// SyncAccounts merges DB accounts into pool, preserving in-memory state for existing ones.
+// New accounts are added; removed accounts stay but are marked inactive.
+func (p *Pool) SyncAccounts(provider string, dbAccounts []*Account) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	existing := p.accounts[provider]
+	existingByID := make(map[string]*Account, len(existing))
+	for _, acc := range existing {
+		existingByID[acc.ID] = acc
+	}
+
+	seen := make(map[string]bool, len(dbAccounts))
+	merged := make([]*Account, 0, len(dbAccounts))
+
+	for _, dbAcc := range dbAccounts {
+		if dbAcc == nil {
+			continue
+		}
+		seen[dbAcc.ID] = true
+
+		if cur, ok := existingByID[dbAcc.ID]; ok {
+			// Preserve in-memory state, update DB fields
+			cur.Email = dbAcc.Email
+			cur.IsActive = dbAcc.IsActive
+			cur.CreditLimit = dbAcc.CreditLimit
+			cur.CreditUsed = dbAcc.CreditUsed
+			cur.ExpiresAt = dbAcc.ExpiresAt
+			if dbAcc.AccessToken != "" && dbAcc.AccessToken != "virtual" {
+				cur.AccessToken = dbAcc.AccessToken
+			}
+			if dbAcc.RefreshToken != "" {
+				cur.RefreshToken = dbAcc.RefreshToken
+			}
+			merged = append(merged, cur)
+		} else {
+			// New account from DB
+			if dbAcc.State == "" {
+				dbAcc.State = StateActive
+			}
+			merged = append(merged, dbAcc)
+		}
+	}
+
+	// Carry over accounts not in DB but still in pool (mark as inactive so they drain)
+	for _, acc := range existing {
+		if !seen[acc.ID] {
+			acc.IsActive = false
+			merged = append(merged, acc)
+		}
+	}
+
+	p.accounts[provider] = merged
+}
+
+// ListAccounts returns all accounts for a provider (for sync/debug).
+func (p *Pool) ListAccounts(provider string) []*Account {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	accounts := p.accounts[provider]
+	result := make([]*Account, len(accounts))
+	copy(result, accounts)
+	return result
+}
+
 func calculateBackoff(level int) time.Duration {
 	if level < 0 {
 		level = 0
