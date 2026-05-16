@@ -53,17 +53,17 @@ var ProviderConfigs = map[string]ProviderOAuthConfig{
 	},
 	"gemini": {
 		ClientID:     "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-		ClientSecret: "", // Set via environment variable GEMINI_CLIENT_SECRET
+		ClientSecret: "", // Set via GEMINI_CLIENT_SECRET env var
 		TokenURL:     "https://oauth2.googleapis.com/token",
 	},
 	"gemini-cli": {
 		ClientID:     "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-		ClientSecret: "", // Set via environment variable GEMINI_CLIENT_SECRET
+		ClientSecret: "", // Set via GEMINI_CLIENT_SECRET env var
 		TokenURL:     "https://oauth2.googleapis.com/token",
 	},
 	"antigravity": {
 		ClientID:     "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-		ClientSecret: "", // Set via environment variable ANTIGRAVITY_CLIENT_SECRET
+		ClientSecret: "", // Set via ANTIGRAVITY_CLIENT_SECRET env var
 		TokenURL:     "https://oauth2.googleapis.com/token",
 	},
 	"codex": {
@@ -80,7 +80,7 @@ var ProviderConfigs = map[string]ProviderOAuthConfig{
 	},
 	"iflow": {
 		ClientID:     "10009311001",
-		ClientSecret: "4Z3YjXycVsQvyGF1etiNlIBB4RsqSDtW",
+		ClientSecret: "", // Set via IFLOW_CLIENT_SECRET env var
 		TokenURL:     "https://iflow.cn/oauth/token",
 	},
 	"kiro": {
