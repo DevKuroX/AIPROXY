@@ -73,6 +73,10 @@ func isRTKEnabled() bool {
 	return getSetting("rtkEnabled") != "false"
 }
 
+func isDCPEnabled() bool {
+	return getSetting("dcpEnabled") != "false"
+}
+
 func isCavemanEnabled() bool {
 	return getSetting("cavemanEnabled") == "true"
 }
@@ -729,6 +733,23 @@ func callProviderAPI(ctx context.Context, cfg *providers.ProviderConfig, model s
 					}
 				}
 				reqMap["messages"] = msgs
+			}
+		}
+
+		// DCP: dedup tool calls + prune errored results
+		if isDCPEnabled() {
+			if msgs, ok := reqMap["messages"].([]interface{}); ok {
+				var parsed []map[string]interface{}
+				for _, m := range msgs {
+					if msg, ok := m.(map[string]interface{}); ok {
+						parsed = append(parsed, msg)
+					}
+				}
+				if len(parsed) > 0 {
+					cleaned := dedupToolCalls(parsed)
+					cleaned = pruneErrorToolResults(cleaned)
+					reqMap["messages"] = cleaned
+				}
 			}
 		}
 
