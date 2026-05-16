@@ -95,6 +95,9 @@ func (r *Router) Routes() *http.ServeMux {
 	// Conversation compact endpoint
 	proxyMux.HandleFunc("POST /v1/responses/compact", router.HandleCompact)
 
+	// DCP — Context Deduplication/Pruning
+	proxyMux.HandleFunc("POST /v1/dcp", router.HandleDCP)
+
 	// Model discovery (v1 handlers support kind-based filtering)
 	proxyMux.HandleFunc("GET /v1/models", v1.HandleModels)
 	proxyMux.HandleFunc("GET /v1/models/info", v1.HandleModelInfo)
