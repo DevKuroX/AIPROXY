@@ -152,7 +152,7 @@ var PROVIDERS = map[string]ProviderConfig{
 	},
 	"azure": {
 		Name: "Azure OpenAI", Type: TypeOpenAI,
-		BaseURL: "", AuthType: AuthTypeBearer, Format: FormatOpenAI,
+		BaseURL: "https://{resource}.openai.azure.com/openai/deployments/{deployment}/chat/completions", AuthType: AuthTypeBearer, Format: FormatOpenAI,
 	},
 	"alicode": {
 		Name: "Aliyun Code", Type: TypeOpenAI,
@@ -220,12 +220,6 @@ var PROVIDERS = map[string]ProviderConfig{
 		BaseURL: "https://api.minimaxi.com/anthropic/v1/messages", AuthType: AuthTypeOAuth, Format: FormatClaude,
 		Headers: CLAUDE_API_HEADERS,
 	},
-	"kimi-coding": {
-		Name: "Kimi Coding", Type: TypeOpenAI,
-		BaseURL: "https://api.kimi.com/coding/v1/messages", AuthType: AuthTypeOAuth, Format: FormatClaude,
-		Headers: CLAUDE_API_HEADERS,
-	},
-
 	// === OAuth Providers (OpenAI format) ===
 	"qwen": {
 		Name: "Qwen Code", Type: TypeOpenAI,

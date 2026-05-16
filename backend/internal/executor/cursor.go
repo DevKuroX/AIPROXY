@@ -876,6 +876,3 @@ func (e *CursorExecutor) HandleError(ctx context.Context, err error) error {
 }
 
 // init registers the Cursor executor.
-func init() {
-	Register("cursor", NewCursorExecutor())
-}
