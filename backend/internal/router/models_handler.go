@@ -32,7 +32,8 @@ func HandleListModels(w http.ResponseWriter, r *http.Request) {
 		   cfg.Format != providers.FormatGemini &&
 		   cfg.Format != providers.FormatAntigravity &&
 		   cfg.Format != providers.FormatCursor &&
-		   cfg.Format != providers.FormatOllama {
+	       cfg.Format != providers.FormatOllama &&
+	       cfg.Format != providers.FormatGeminiWeb {
 			continue
 		}
 

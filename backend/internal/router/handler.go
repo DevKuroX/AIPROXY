@@ -9,16 +9,43 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/DevKuroX/AIPROXY/internal/errs"
+	"github.com/DevKuroX/AIPROXY/internal/geminiweb"
 	"github.com/DevKuroX/AIPROXY/internal/pool"
 	"github.com/DevKuroX/AIPROXY/internal/providers"
 	"github.com/DevKuroX/AIPROXY/internal/rtk"
 	reqtrans "github.com/DevKuroX/AIPROXY/internal/translator/request"
 	resptrans "github.com/DevKuroX/AIPROXY/internal/translator/response"
 )
+
+var (
+	geminiWebSession     *geminiweb.Session
+	geminiWebSessionMu   sync.Mutex
+)
+
+func getGeminiWebSession() *geminiweb.Session {
+	geminiWebSessionMu.Lock()
+	defer geminiWebSessionMu.Unlock()
+
+	if geminiWebSession == nil {
+		cookie1 := os.Getenv("GEMINI_SECURE_1PSID")
+		cookie2 := os.Getenv("GEMINI_SECURE_1PSIDTS")
+		proxy := os.Getenv("GEMINI_PROXY")
+		if proxy == "" {
+			proxy = os.Getenv("PROXY_URL")
+		}
+
+		if cookie1 != "" && cookie2 != "" {
+			geminiWebSession = geminiweb.NewSession(cookie1, cookie2, proxy)
+		}
+	}
+	return geminiWebSession
+}
 
 var globalPool *pool.Pool
 var globalProxyAPI interface{}
@@ -90,6 +117,71 @@ func (e *providerError) Error() string {
 	return e.message
 }
 
+// CompactThreshold controls when auto-compact triggers: % of context window used (0.0-1.0)
+// 0 means disabled. Default 0.85 = compact when context is 85% full.
+var compactThreshold = 0.85
+
+// SetCompactThreshold overrides the default threshold (0.0 disables auto-compact)
+func SetCompactThreshold(t float64) {
+	compactThreshold = t
+}
+
+func estimateTokens(body []byte) int {
+	// rough estimate: 4 chars ~ 1 token
+	return len(body) / 4
+}
+
+// maybeCompactBody checks if the request body exceeds context window % threshold.
+// If so, compacts older messages (all but last 2) via LLM and returns modified body.
+// Returns original body if no compact needed or on error.
+func maybeCompactBody(body []byte, providerCfg *providers.ProviderConfig, modelName string) []byte {
+	if compactThreshold <= 0 {
+		return body
+	}
+
+	var reqMap map[string]interface{}
+	if err := json.Unmarshal(body, &reqMap); err != nil {
+		return body
+	}
+
+	messages, ok := reqMap["messages"].([]interface{})
+	if !ok || len(messages) < 3 {
+		return body // need at least 3 messages to bother compacting
+	}
+
+	estTokens := estimateTokens(body)
+	ctxWindow := providerCfg.GetContextWindow()
+	usagePct := float64(estTokens) / float64(ctxWindow)
+
+	if usagePct < compactThreshold {
+		return body // under threshold, no compact needed
+	}
+
+	// Compact: keep last 2 messages (latest user + assistant), summarize the rest
+	keep := messages[len(messages)-2:]
+	compactInput := messages[:len(messages)-2]
+
+	compactResult, err := compactViaLLM(*providerCfg, modelName, compactInput)
+	if err != nil {
+		return body // compact failed, proceed with original body
+	}
+
+	// compactResult has "input" key with summarized messages
+	summarized, ok := compactResult["input"].([]interface{})
+	if !ok {
+		return body
+	}
+
+	reqMap["messages"] = append(summarized, keep...)
+
+	newBody, err := json.Marshal(reqMap)
+	if err != nil {
+		return body
+	}
+
+	return newBody
+}
+
 func HandleChatCompletions(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -135,6 +227,8 @@ func handleNonStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReq
 		return
 	}
 
+	body = maybeCompactBody(body, &providerCfg, modelName)
+
 	// Retry loop: refresh on 401, backoff on 429
 	var providerResp map[string]interface{}
 	var lastErr error
@@ -144,6 +238,7 @@ func handleNonStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReq
 	for attempt := 0; attempt < 3; attempt++ {
 		providerResp, lastErr = callProviderAPI(r.Context(), &providerCfg, modelName, account, body)
 		if lastErr == nil {
+			globalPool.MarkSuccess(account.ID)
 			break
 		}
 
@@ -159,18 +254,18 @@ func handleNonStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReq
 		}
 
 		if isProviderErr && pe.statusCode == 429 {
-			backoff := CalculateBackoff(attempt)
-			globalPool.MarkRateLimited(account.ID, backoff)
+			globalPool.MarkRateLimited(account.ID)
 			nextAcc, accErr := globalPool.GetAccount(providerID)
 			if accErr != nil {
 				errs.WriteJSONError(w, fmt.Sprintf("all accounts rate limited for %s", providerID), http.StatusTooManyRequests)
 				return
 			}
 			account = nextAcc
-			time.Sleep(backoff)
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
+		globalPool.MarkError(account.ID)
 		errs.WriteJSONError(w, lastErr.Error(), http.StatusBadGateway)
 		return
 	}
@@ -220,6 +315,8 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 		return
 	}
 
+	body = maybeCompactBody(body, &providerCfg, modelName)
+
 	// Build translated body
 	reqMap := make(map[string]interface{})
 	json.Unmarshal(body, &reqMap)
@@ -227,6 +324,87 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 
 	var translatedBody []byte
 	switch providerCfg.Format {
+
+	case providers.FormatGeminiWeb:
+		session := getGeminiWebSession()
+		if session == nil {
+			writeSSE(w, flusher, map[string]interface{}{"error": "gemini-web: not configured. Set GEMINI_SECURE_1PSID and GEMINI_SECURE_1PSIDTS env vars"})
+			writeSSE(w, flusher, "[DONE]")
+			return
+		}
+
+		// Extract the last user message
+		userContent := ""
+		if msgs, ok := reqMap["messages"].([]interface{}); ok && len(msgs) > 0 {
+			for i := len(msgs) - 1; i >= 0; i-- {
+				if msg, ok := msgs[i].(map[string]interface{}); ok {
+					if role, _ := msg["role"].(string); role == "user" {
+						if c, ok := msg["content"].(string); ok {
+							userContent = c
+							break
+						}
+					}
+				}
+			}
+		}
+		if userContent == "" {
+			userContent = "Hello"
+		}
+
+		// Initialize session if needed
+		if !session.IsAuthenticated() {
+			if err := session.Init(); err != nil {
+				writeSSE(w, flusher, map[string]interface{}{"error": fmt.Sprintf("gemini-web auth failed: %v", err)})
+				writeSSE(w, flusher, "[DONE]")
+				return
+			}
+		}
+
+		err := session.SendChatStream(userContent, modelName, func(chunk geminiweb.GeminiResponse) {
+			// Translate to SSE format
+			if chunk.Text != "" {
+				openaiChunk := map[string]interface{}{
+					"id": fmt.Sprintf("chatcmpl-%d", time.Now().UnixMilli()),
+					"object": "chat.completion.chunk",
+					"created": time.Now().Unix(),
+					"model": fmt.Sprintf("gemini-web/%s", modelName),
+					"choices": []map[string]interface{}{
+						{
+							"index": 0,
+							"delta": map[string]interface{}{
+								"content": chunk.Text,
+							},
+						},
+					},
+				}
+				writeSSE(w, flusher, openaiChunk)
+			}
+			// Handle images
+			for _, img := range chunk.Images {
+				imgChunk := map[string]interface{}{
+					"id": fmt.Sprintf("chatcmpl-%d", time.Now().UnixMilli()),
+					"object": "chat.completion.chunk",
+					"created": time.Now().Unix(),
+					"model": fmt.Sprintf("gemini-web/%s", modelName),
+					"choices": []map[string]interface{}{
+						{
+							"index": 0,
+							"delta": map[string]interface{}{
+								"content": fmt.Sprintf("\n![%s](%s)\n", img.Alt, img.URL),
+							},
+						},
+					},
+				}
+				writeSSE(w, flusher, imgChunk)
+			}
+		})
+
+		if err != nil {
+			writeSSE(w, flusher, map[string]interface{}{"error": fmt.Sprintf("gemini-web stream error: %v", err)})
+		}
+		writeSSE(w, flusher, "[DONE]")
+		return
+
 	case "kiro":
 		userContent := "Say hi"
 		if msgs, ok := reqMap["messages"].([]interface{}); ok && len(msgs) > 0 {
@@ -246,9 +424,9 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 					},
 				},
 			},
-			"profileArn": "arn:aws:codewhisperer:us-east-1:699475941385:profile/EHGA3GRVQMUK",
+			"profileArn":     "arn:aws:codewhisperer:us-east-1:699475941385:profile/EHGA3GRVQMUK",
 			"inferenceConfig": map[string]interface{}{"maxTokens": 32000},
-			"model": modelName,
+			"model":           modelName,
 		}
 		translatedBody, _ = json.Marshal(kiroReq)
 	default:
@@ -368,13 +546,13 @@ func prepareChat(ctx context.Context, modelStr string) (providers.ProviderConfig
 		return providers.ProviderConfig{}, nil, fmt.Errorf("unknown provider: %s", providerID)
 	}
 
-	// For noAuth providers, create virtual account
-	if providerCfg.AuthType == providers.AuthTypeNone {
+	// For noAuth and cookie providers, create virtual account (no DB row needed)
+	if providerCfg.AuthType == providers.AuthTypeNone || providerCfg.AuthType == providers.AuthTypeCookie {
 		virtualAccount := &pool.Account{
-			ID:          "noauth",
+			ID:          providerID,
 			Provider:    providerID,
 			IsActive:    true,
-			AccessToken: "public",
+			AccessToken: "virtual",
 		}
 		return providerCfg, virtualAccount, nil
 	}
@@ -446,6 +624,63 @@ func callProviderAPI(ctx context.Context, cfg *providers.ProviderConfig, model s
 				translatedBody, _ = json.Marshal(geminiReq)
 			}
 		}
+
+	case providers.FormatGeminiWeb:
+		session := getGeminiWebSession()
+		if session == nil {
+			return nil, fmt.Errorf("gemini-web not configured: set GEMINI_SECURE_1PSID and GEMINI_SECURE_1PSIDTS env vars")
+		}
+		if !session.IsAuthenticated() {
+			if err := session.Init(); err != nil {
+				return nil, fmt.Errorf("gemini-web auth failed: %v", err)
+			}
+		}
+
+		userContent := ""
+		if msgs, ok := reqMap["messages"].([]interface{}); ok && len(msgs) > 0 {
+			for i := len(msgs) - 1; i >= 0; i-- {
+				if msg, ok := msgs[i].(map[string]interface{}); ok {
+					if role, _ := msg["role"].(string); role == "user" {
+						if c, ok := msg["content"].(string); ok {
+							userContent = c
+							break
+						}
+					}
+				}
+			}
+		}
+		if userContent == "" {
+			userContent = "Hello"
+		}
+
+		geminiResp, err := session.SendChat(userContent, model)
+		if err != nil {
+			return nil, fmt.Errorf("gemini-web request failed: %v", err)
+		}
+
+		// Translate to OpenAI format
+		result := map[string]interface{}{
+			"id":      fmt.Sprintf("chatcmpl-%d", time.Now().UnixMilli()),
+			"object":  "chat.completion",
+			"created": time.Now().Unix(),
+			"model":   fmt.Sprintf("gemini-web/%s", model),
+			"choices": []map[string]interface{}{
+				{
+					"index": 0,
+					"message": map[string]interface{}{
+						"role":    "assistant",
+						"content": geminiResp.Text,
+					},
+					"finish_reason": "stop",
+				},
+			},
+			"usage": map[string]interface{}{
+				"prompt_tokens":     0,
+				"completion_tokens": 0,
+				"total_tokens":      0,
+			},
+		}
+		return result, nil
 
 	case "kiro":
 		userContent := "Say hi"

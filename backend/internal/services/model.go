@@ -77,6 +77,7 @@ var aliasToProviderID = map[string]string{
 	"grok-web":    "grok-web",
 	"pw":          "perplexity-web",
 	"perplexity-web": "perplexity-web",
+	"gemini-web":  "gemini-web",
 	"mimo":        "xiaomi-mimo",
 	"xiaomi-mimo": "xiaomi-mimo",
 	"cf":          "cloudflare-ai",

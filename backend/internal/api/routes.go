@@ -95,14 +95,10 @@ func (r *Router) Routes() *http.ServeMux {
 	// Conversation compact endpoint
 	proxyMux.HandleFunc("POST /v1/responses/compact", router.HandleCompact)
 
-	// Model discovery
-	proxyMux.HandleFunc("GET /v1/models", router.HandleListModels)
-	proxyMux.HandleFunc("GET /v1/models/chat", router.HandleListModels)
-	proxyMux.HandleFunc("GET /v1/models/image", router.HandleListImageModels)
-	proxyMux.HandleFunc("GET /v1/models/tts", router.HandleListTTSModels)
-	proxyMux.HandleFunc("GET /v1/models/embedding", router.HandleListEmbeddingModels)
-	proxyMux.HandleFunc("GET /v1/models/web", router.HandleListWebModels)
-	proxyMux.HandleFunc("GET /v1/models/stt", router.HandleListSTTModels)
+	// Model discovery (v1 handlers support kind-based filtering)
+	proxyMux.HandleFunc("GET /v1/models", v1.HandleModels)
+	proxyMux.HandleFunc("GET /v1/models/info", v1.HandleModelInfo)
+	proxyMux.HandleFunc("GET /v1/models/{kind}", v1.HandleModelsByKind)
 
 	mux.Handle("/v1/", apiKeyMiddleware(proxyMux))
 

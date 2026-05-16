@@ -6,14 +6,26 @@ const (
 	KIRO_USAGE_URL   = "https://codewhisperer.us-east-1.amazonaws.com/getUsageLimits"
 )
 
+// Default context window in tokens (128K)
+const DefaultContextWindow = 128000
+
 // ProviderConfig represents the configuration for an AI provider
 type ProviderConfig struct {
-	Name     string
-	Type     string
-	BaseURL  string
-	AuthType string
-	Format   string
-	Headers  map[string]string
+	Name          string
+	Type          string
+	BaseURL       string
+	AuthType      string
+	Format        string
+	Headers       map[string]string
+	ContextWindow int // max context tokens, 0 = use DefaultContextWindow
+}
+
+// GetContextWindow returns the effective context window for this provider
+func (p ProviderConfig) GetContextWindow() int {
+	if p.ContextWindow > 0 {
+		return p.ContextWindow
+	}
+	return DefaultContextWindow
 }
 
 const (
@@ -49,6 +61,7 @@ const (
 	FormatPerplexityWeb  = "perplexity-web"
 	FormatCommandCode    = "commandcode"
 	FormatCodexResponses = "openai-responses"
+	FormatGeminiWeb      = "gemini-web"
 )
 
 var CLAUDE_API_HEADERS = map[string]string{
@@ -64,7 +77,7 @@ var PROVIDERS = map[string]ProviderConfig{
 		BaseURL: "https://api.openai.com/v1/chat/completions", AuthType: AuthTypeBearer, Format: FormatOpenAI,
 	},
 	"anthropic": {
-		Name: "Anthropic", Type: TypeClaude,
+		Name: "Anthropic", Type: TypeClaude, ContextWindow: 200000,
 		BaseURL: "https://api.anthropic.com/v1/messages", AuthType: AuthTypeAPIKey, Format: FormatClaude,
 		Headers: CLAUDE_API_HEADERS,
 	},
@@ -176,7 +189,7 @@ var PROVIDERS = map[string]ProviderConfig{
 
 	// === OAuth Providers (Claude format) ===
 	"claude": {
-		Name: "Anthropic Claude", Type: TypeClaude,
+		Name: "Anthropic Claude", Type: TypeClaude, ContextWindow: 200000,
 		BaseURL: "https://api.anthropic.com/v1/messages", AuthType: AuthTypeOAuth, Format: FormatClaude,
 		Headers: map[string]string{
 			"Anthropic-Version": "2023-06-01",
@@ -253,11 +266,11 @@ var PROVIDERS = map[string]ProviderConfig{
 
 	// === Cloud OAuth Providers (Gemini format) ===
 	"gemini": {
-		Name: "Google Gemini", Type: TypeGemini,
+		Name: "Google Gemini", Type: TypeGemini, ContextWindow: 1000000,
 		BaseURL: "https://generativelanguage.googleapis.com/v1beta/models", AuthType: AuthTypeOAuth, Format: FormatGemini,
 	},
 	"gemini-cli": {
-		Name: "Gemini CLI", Type: TypeGemini,
+		Name: "Gemini CLI", Type: TypeGemini, ContextWindow: 1000000,
 		BaseURL: "https://cloudcode-pa.googleapis.com/v1internal", AuthType: AuthTypeOAuth, Format: FormatGeminiCLI,
 	},
 	"antigravity": {
@@ -268,7 +281,7 @@ var PROVIDERS = map[string]ProviderConfig{
 
 	// === Special Executors ===
 	"kiro": {
-		Name: "AWS CodeWhisperer", Type: TypeKiro,
+		Name: "AWS CodeWhisperer", Type: TypeKiro, ContextWindow: 200000,
 		BaseURL: "https://codewhisperer.us-east-1.amazonaws.com/generateAssistantResponse", AuthType: AuthTypeOAuth, Format: FormatKiro,
 		Headers: map[string]string{
 			"X-Amz-Target":     "AmazonCodeWhispererStreamingService.GenerateAssistantResponse",
@@ -325,6 +338,10 @@ var PROVIDERS = map[string]ProviderConfig{
 	"perplexity-web": {
 		Name: "Perplexity Web", Type: TypeOpenAI,
 		BaseURL: "https://www.perplexity.ai/rest/sse/perplexity_ask", AuthType: AuthTypeCookie, Format: FormatPerplexityWeb,
+	},
+	"gemini-web": {
+		Name: "Gemini Web", Type: TypeGemini,
+		BaseURL: "https://gemini.google.com", AuthType: AuthTypeCookie, Format: FormatGeminiWeb,
 	},
 
 	// === Audio Providers ===
