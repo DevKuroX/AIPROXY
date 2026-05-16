@@ -52,12 +52,14 @@ func (s *Session) BuildChatPayload(prompt string, modelName string) (string, str
 	uid := strings.ToUpper(uuid.New().String())
 	innerReq[59] = uid
 
-	// Build the f.req payload
+	innerJSON, err := json.Marshal(innerReq)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to marshal inner req: %w", err)
+	}
 	freqPayload := []interface{}{
 		nil,
-		innerReq,
+		string(innerJSON),
 	}
-
 	freqJSON, err := json.Marshal(freqPayload)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to marshal f.req: %w", err)
