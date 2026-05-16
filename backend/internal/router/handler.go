@@ -77,6 +77,10 @@ func isDCPEnabled() bool {
 	return getSetting("dcpEnabled") != "false"
 }
 
+func isCompactEnabled() bool {
+	return getSetting("compactEnabled") != "false"
+}
+
 func isCavemanEnabled() bool {
 	return getSetting("cavemanEnabled") == "true"
 }
@@ -130,7 +134,7 @@ func estimateTokens(body []byte) int {
 // If so, compacts older messages (all but last 2) via LLM and returns modified body.
 // Returns original body if no compact needed or on error.
 func maybeCompactBody(body []byte, providerCfg *providers.ProviderConfig, modelName string) []byte {
-	if compactThreshold <= 0 {
+	if compactThreshold <= 0 || !isCompactEnabled() {
 		return body
 	}
 
@@ -141,7 +145,7 @@ func maybeCompactBody(body []byte, providerCfg *providers.ProviderConfig, modelN
 
 	messages, ok := reqMap["messages"].([]interface{})
 	if !ok || len(messages) < 3 {
-		return body // need at least 3 messages to bother compacting
+		return body
 	}
 
 	estTokens := estimateTokens(body)
