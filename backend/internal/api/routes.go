@@ -16,9 +16,13 @@ type Router struct {
 	apiSecret string
 	analytics admin.AnalyticsStore
 	nodes     admin.NodeStore
+	accounts  admin.AccountStore
+	combos    admin.ComboStore
+	aliases   admin.AliasStore
+	keys      admin.KeyStore
 }
 
-func NewRouter(jwtSecret string, users admin.UserStore, keyStore middleware.KeyStore, apiSecret string, analytics admin.AnalyticsStore, nodes admin.NodeStore) *Router {
+func NewRouter(jwtSecret string, users admin.UserStore, keyStore middleware.KeyStore, apiSecret string, analytics admin.AnalyticsStore, nodes admin.NodeStore, accounts admin.AccountStore, combos admin.ComboStore, aliases admin.AliasStore, keys admin.KeyStore) *Router {
 	return &Router{
 		jwtSecret: jwtSecret,
 		users:     users,
@@ -26,6 +30,10 @@ func NewRouter(jwtSecret string, users admin.UserStore, keyStore middleware.KeyS
 		apiSecret: apiSecret,
 		analytics: analytics,
 		nodes:     nodes,
+		accounts:  accounts,
+		combos:    combos,
+		aliases:   aliases,
+		keys:      keys,
 	}
 }
 
@@ -45,18 +53,50 @@ func (r *Router) Routes() *http.ServeMux {
 
 	analyticsHandler := admin.NewAnalyticsHandler(r.analytics)
 	nodeHandler := admin.NewNodeHandler(r.nodes)
+	accountHandler := admin.NewAccountHandler(r.accounts)
+	comboHandler := admin.NewComboHandler(r.combos)
+	aliasHandler := admin.NewAliasHandler(r.aliases)
+	keyHandler := admin.NewKeyHandler(r.keys)
+
 	adminMux := http.NewServeMux()
+
+	// Usage
 	adminMux.HandleFunc("GET /api/admin/usage", analyticsHandler.ListUsage)
 	adminMux.HandleFunc("GET /api/admin/usage/stats", analyticsHandler.GetUsageStats)
 	adminMux.HandleFunc("GET /api/admin/pricing", analyticsHandler.ListPricing)
 	adminMux.HandleFunc("POST /api/admin/pricing", analyticsHandler.CreatePricing)
 	adminMux.HandleFunc("POST /api/admin/pricing/{id}", analyticsHandler.UpdatePricing)
 	adminMux.HandleFunc("DELETE /api/admin/pricing/{id}", analyticsHandler.DeletePricing)
+
+	// Provider nodes
 	adminMux.HandleFunc("GET /api/provider-nodes", nodeHandler.ListNodes)
 	adminMux.HandleFunc("POST /api/provider-nodes", nodeHandler.CreateNode)
 	adminMux.HandleFunc("PATCH /api/provider-nodes/{id}", nodeHandler.UpdateNode)
 	adminMux.HandleFunc("DELETE /api/provider-nodes/{id}", nodeHandler.DeleteNode)
 	adminMux.HandleFunc("POST /api/provider-nodes/{id}/test", nodeHandler.TestNode)
+
+	// Accounts
+	adminMux.HandleFunc("GET /api/admin/accounts", accountHandler.List)
+	adminMux.HandleFunc("POST /api/admin/accounts", accountHandler.Create)
+	adminMux.HandleFunc("GET /api/admin/accounts/{id}", accountHandler.Get)
+	adminMux.HandleFunc("PUT /api/admin/accounts/{id}", accountHandler.Update)
+	adminMux.HandleFunc("DELETE /api/admin/accounts/{id}", accountHandler.Delete)
+
+	// Combos
+	adminMux.HandleFunc("GET /api/admin/combos", comboHandler.List)
+	adminMux.HandleFunc("POST /api/admin/combos", comboHandler.Create)
+	adminMux.HandleFunc("PUT /api/admin/combos/{id}", comboHandler.Update)
+	adminMux.HandleFunc("DELETE /api/admin/combos/{id}", comboHandler.Delete)
+
+	// Aliases
+	adminMux.HandleFunc("GET /api/admin/aliases", aliasHandler.ListAliases)
+	adminMux.HandleFunc("POST /api/admin/aliases", aliasHandler.CreateAlias)
+	adminMux.HandleFunc("DELETE /api/admin/aliases/{id}", aliasHandler.DeleteAlias)
+
+	// API Keys
+	adminMux.HandleFunc("GET /api/admin/keys", keyHandler.List)
+	adminMux.HandleFunc("POST /api/admin/keys", keyHandler.Create)
+	adminMux.HandleFunc("DELETE /api/admin/keys/{id}", keyHandler.Delete)
 
 	mux.Handle("/api/admin/", authMiddleware(adminMux))
 
