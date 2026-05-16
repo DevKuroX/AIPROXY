@@ -130,6 +130,25 @@ curl localhost:1432/health
 
 ---
 
+## AIPROXY Skills
+
+Skills are bite-sized docs that tell agents how to use specific AIPROXY capabilities
+without reading the whole codebase. Load a skill when the task matches its domain.
+
+Available skills (in `backend/skills/`):
+
+| Skill | When to load | Content |
+|---|---|---|
+| `aiproxy/SKILL.md` | Any AIPROXY task — start here | Setup, CLI, model format, features |
+| `aiproxy-chat/SKILL.md` | Chat, code-gen, LLM completion | Endpoints, streaming, providers |
+| `aiproxy-image/SKILL.md` | Image generation | Providers, prompt format |
+| `aiproxy-tts/SKILL.md` | Text-to-speech | Endpoint, voices |
+| `aiproxy-stt/SKILL.md` | Speech-to-text | Audio transcription |
+| `aiproxy-embeddings/SKILL.md` | Text embeddings | Vector embeddings |
+| `aiproxy-web/SKILL.md` | Web search or URL fetch | Search + fetch endpoints |
+
+To use: `task(subagent_type="explore", ..., prompt="Read backend/skills/aiproxy/SKILL.md and ...")`
+
 ## When Adding a Feature
 
 1. Check if similar feature exists in `_ref/9router/skills/`
@@ -138,3 +157,4 @@ curl localhost:1432/health
 4. Add config in `providers/config.go`
 5. Add route in `api/routes.go`
 6. Handle format in `router/handler.go` if needed
+7. Create/update skill in `backend/skills/` for the new capability
