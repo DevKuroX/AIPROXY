@@ -354,3 +354,7 @@ func GetProviderConfig(providerID string) (ProviderConfig, bool) {
 	config, exists := PROVIDERS[providerID]
 	return config, exists
 }
+
+func GetAllProviderConfigs() map[string]ProviderConfig {
+	return PROVIDERS
+}
