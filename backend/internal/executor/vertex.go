@@ -10,6 +10,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -432,6 +433,10 @@ func (e *VertexExecutor) HandleError(ctx context.Context, err error) error {
 
 func init() {
 	// Register both vertex and vertex-partner executors
-	Register("vertex", NewVertexExecutor("vertex"))
-	Register("vertex-partner", NewVertexExecutor("vertex-partner"))
+	if err := Register("vertex", NewVertexExecutor("vertex")); err != nil {
+		log.Fatalf("failed to register vertex executor: %v", err)
+	}
+	if err := Register("vertex-partner", NewVertexExecutor("vertex-partner")); err != nil {
+		log.Fatalf("failed to register vertex-partner executor: %v", err)
+	}
 }

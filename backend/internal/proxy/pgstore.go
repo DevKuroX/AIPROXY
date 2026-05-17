@@ -3,6 +3,7 @@ package proxy
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -47,16 +48,23 @@ func (s *PGStore) DeleteProxy(ctx context.Context, id string) error {
 }
 
 func (s *PGStore) SavePool(ctx context.Context, p *ProxyPool) error {
+	if p.ID == "" {
+		p.ID = fmt.Sprintf("pool-%d", time.Now().UnixNano())
+	}
+	if p.LastTestedAt == nil {
+		now := time.Now()
+		p.LastTestedAt = &now
+	}
 	_, err := s.pool.Exec(ctx, `
-		INSERT INTO proxy_pools (name, pool_type, proxy_url, no_proxy, strict_proxy, is_active, test_status, last_error, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-		ON CONFLICT (id) DO UPDATE SET name=$1, proxy_url=$3, is_active=$6, test_status=$7, updated_at=NOW()`,
-		p.Name, p.Type, p.ProxyURL, p.NoProxy, p.StrictProxy, p.IsActive, p.TestStatus, p.LastError, time.Now(), time.Now())
+		INSERT INTO proxy_pools (id, name, pool_type, proxy_url, no_proxy, strict_proxy, is_active, test_status, last_error, latency_ms, region, last_tested_at, proxies, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, '[]'::jsonb, $13, $14)
+		ON CONFLICT (id) DO UPDATE SET name=$2, proxy_url=$4, is_active=$7, test_status=$8, last_error=$9, latency_ms=$10, region=$11, last_tested_at=$12, updated_at=NOW()`,
+		p.ID, p.Name, p.Type, p.ProxyURL, p.NoProxy, p.StrictProxy, p.IsActive, p.TestStatus, p.LastError, p.LatencyMs, p.Region, p.LastTestedAt, time.Now(), time.Now())
 	return err
 }
 
 func (s *PGStore) GetPools(ctx context.Context) ([]*ProxyPool, error) {
-	rows, err := s.pool.Query(ctx, "SELECT id, name, COALESCE(pool_type,'http'), COALESCE(proxy_url,''), COALESCE(no_proxy,''), COALESCE(strict_proxy,false), is_active, COALESCE(test_status,'unknown'), COALESCE(last_error,''), created_at, updated_at FROM proxy_pools")
+	rows, err := s.pool.Query(ctx, "SELECT id, name, COALESCE(pool_type,'http'), COALESCE(proxy_url,''), COALESCE(no_proxy,''), COALESCE(strict_proxy,false), is_active, COALESCE(test_status,'unknown'), COALESCE(last_error,''), COALESCE(latency_ms,0), COALESCE(region,''), last_tested_at, proxies::text, created_at, updated_at FROM proxy_pools ORDER BY created_at DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +73,14 @@ func (s *PGStore) GetPools(ctx context.Context) ([]*ProxyPool, error) {
 	var pools []*ProxyPool
 	for rows.Next() {
 		p := &ProxyPool{}
-		rows.Scan(&p.ID, &p.Name, &p.Type, &p.ProxyURL, &p.NoProxy, &p.StrictProxy, &p.IsActive, &p.TestStatus, &p.LastError, &p.CreatedAt, &p.UpdatedAt)
+		var proxiesText string
+		err := rows.Scan(&p.ID, &p.Name, &p.Type, &p.ProxyURL, &p.NoProxy, &p.StrictProxy, &p.IsActive, &p.TestStatus, &p.LastError, &p.LatencyMs, &p.Region, &p.LastTestedAt, &proxiesText, &p.CreatedAt, &p.UpdatedAt)
+		if err != nil {
+			continue
+		}
 		pools = append(pools, p)
 	}
-	return pools, nil
+	return pools, rows.Err()
 }
 
 func (s *PGStore) DeletePool(ctx context.Context, id string) error {

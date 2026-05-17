@@ -89,6 +89,13 @@ func (h *ProxyAPI) DeletePool(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
+// POST /api/proxy-pools/test-all - test all pools concurrently
+func (h *ProxyAPI) TestAllPools(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	result := h.manager.TestAllPools()
+	json.NewEncoder(w).Encode(result)
+}
+
 // POST /api/proxy-pools/:id/test - test pool connection
 func (h *ProxyAPI) TestPool(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -127,6 +134,13 @@ func (h *ProxyAPI) StartScraper(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	go h.manager.RunScraper()
 	json.NewEncoder(w).Encode(map[string]string{"status": "scraper started"})
+}
+
+// POST /api/scraper/webshare - scrape webshare only
+func (h *ProxyAPI) ScrapeWebshare(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	count := h.manager.ScrapeWebshare()
+	json.NewEncoder(w).Encode(map[string]interface{}{"status": "ok", "imported": count})
 }
 
 // GET /api/scraper/progress - get scraper progress

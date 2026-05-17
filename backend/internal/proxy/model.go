@@ -37,17 +37,21 @@ type Proxy struct {
 }
 
 type ProxyPool struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Type        string `json:"type"`
-	ProxyURL    string `json:"proxy_url"`
-	NoProxy     string `json:"no_proxy"`
-	StrictProxy bool   `json:"strict_proxy"`
-	IsActive    bool   `json:"is_active"`
-	TestStatus  string `json:"test_status"`
-	LastError   string `json:"last_error,omitempty"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Type         string    `json:"type"`
+	ProxyURL     string    `json:"proxy_url"`
+	NoProxy      string    `json:"no_proxy"`
+	StrictProxy  bool      `json:"strict_proxy"`
+	IsActive     bool      `json:"is_active"`
+	TestStatus   string    `json:"test_status"`
+	LastError    string    `json:"last_error,omitempty"`
+	LatencyMs    int        `json:"latency_ms"`
+	Region       string     `json:"region"`
+	Proxies      []string   `json:"proxies,omitempty"`
+	LastTestedAt *time.Time `json:"last_tested_at"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 }
 
 type ProxySettings struct {

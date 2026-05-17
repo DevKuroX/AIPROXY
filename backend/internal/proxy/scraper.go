@@ -107,7 +107,7 @@ func scrapeWebshare(apiKey string) ([]string, error) {
 	var allProxies []string
 
 	for page := 1; page <= 10; page++ {
-		url := fmt.Sprintf("https://proxy.webshare.io/api/v2/proxy/list/?page=%d&page_size=100", page)
+		url := fmt.Sprintf("https://proxy.webshare.io/api/v2/proxy/list/?page=%d&page_size=100&mode=direct", page)
 		req, _ := http.NewRequest("GET", url, nil)
 		req.Header.Set("Authorization", "Token "+apiKey)
 
@@ -118,12 +118,12 @@ func scrapeWebshare(apiKey string) ([]string, error) {
 
 		var data struct {
 			Results []struct {
+				ID           string `json:"id"`
 				ProxyAddress string `json:"proxy_address"`
 				Port         int    `json:"port"`
 				Username     string `json:"username"`
 				Password     string `json:"password"`
 				CountryCode  string `json:"country_code"`
-				Protocol     string `json:"protocol"`
 			} `json:"results"`
 			Next string `json:"next"`
 		}
@@ -131,12 +131,10 @@ func scrapeWebshare(apiKey string) ([]string, error) {
 		resp.Body.Close()
 
 		for _, p := range data.Results {
-			proto := strings.ToLower(p.Protocol)
-			if proto == "" {
-				proto = "http"
-			}
-			proxyURL := fmt.Sprintf("%s://%s:%s@%s:%d", proto, p.Username, p.Password, p.ProxyAddress, p.Port)
+			proxyURL := fmt.Sprintf("socks5://%s:%s@%s:%d", p.Username, p.Password, p.ProxyAddress, p.Port)
 			allProxies = append(allProxies, proxyURL)
+			httpURL := fmt.Sprintf("http://%s:%s@%s:%d", p.Username, p.Password, p.ProxyAddress, p.Port)
+			allProxies = append(allProxies, httpURL)
 		}
 
 		if data.Next == "" || data.Next == "null" {

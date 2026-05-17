@@ -18,21 +18,21 @@ type CLaudeToOpenAIStream struct {
 }
 
 // NewCLaudeToOpenAIStream creates a new stream transformer
-func NewCLaudeToOpenAIStream(w io.Writer) *CLaudeToOpenAIStream {
+func NewCLaudeToOpenAIStream(w io.Writer) (*CLaudeToOpenAIStream, error) {
 	httpWriter, ok := w.(http.ResponseWriter)
 	if !ok {
-		panic("writer must be http.ResponseWriter for SSE streaming")
+		return nil, fmt.Errorf("writer must be http.ResponseWriter for SSE streaming")
 	}
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		panic("writer must support http.Flusher for SSE streaming")
+		return nil, fmt.Errorf("writer must support http.Flusher for SSE streaming")
 	}
 	return &CLaudeToOpenAIStream{
 		w:         httpWriter,
 		flush:     flusher,
 		messageID: "chatcmpl-claude",
 		model:     "claude",
-	}
+	}, nil
 }
 
 // SetMessageID sets the message ID for the OpenAI response

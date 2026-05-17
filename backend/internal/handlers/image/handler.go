@@ -201,8 +201,7 @@ func (h *Handler) Generate(ctx context.Context, opts *GenerateOptions) *Result {
 					StatusCode: http.StatusOK,
 					Header: http.Header{
 						"Content-Type":              []string{mime},
-						"Content-Disposition":       []string{fmt.Sprintf("inline; filename=\"image.%s\"", ext)},
-						"Access-Control-Allow-Origin": []string{"*"},
+				"Content-Disposition":       []string{fmt.Sprintf("inline; filename=\"image.%s\"", ext)},
 					},
 					Body: io.NopCloser(bytes.NewReader(buf)),
 				},
@@ -220,8 +219,7 @@ func (h *Handler) Generate(ctx context.Context, opts *GenerateOptions) *Result {
 		Response: &http.Response{
 			StatusCode: http.StatusOK,
 			Header: http.Header{
-				"Content-Type":              []string{"application/json"},
-				"Access-Control-Allow-Origin": []string{"*"},
+				"Content-Type": []string{"application/json"},
 			},
 			Body: io.NopCloser(bytes.NewReader(respBody)),
 		},

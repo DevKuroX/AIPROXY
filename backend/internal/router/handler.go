@@ -7,8 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -16,7 +18,10 @@ import (
 	"github.com/DevKuroX/AIPROXY/internal/errs"
 	"github.com/DevKuroX/AIPROXY/internal/geminiweb"
 	"github.com/DevKuroX/AIPROXY/internal/pool"
+	"github.com/DevKuroX/AIPROXY/internal/models"
+	"github.com/DevKuroX/AIPROXY/internal/proxy"
 	"github.com/DevKuroX/AIPROXY/internal/providers"
+	"github.com/DevKuroX/AIPROXY/internal/storage"
 	"github.com/DevKuroX/AIPROXY/internal/rtk"
 	reqtrans "github.com/DevKuroX/AIPROXY/internal/translator/request"
 	resptrans "github.com/DevKuroX/AIPROXY/internal/translator/response"
@@ -40,6 +45,8 @@ func getGeminiProxy() string {
 
 var globalPool *pool.Pool
 var globalProxyAPI interface{}
+var globalProxyManager *proxy.Manager
+var globalDB *storage.DB
 var globalSettingsGetter func(key string) string
 
 func SetGlobalPool(p *pool.Pool) {
@@ -58,8 +65,57 @@ func GetProxyAPI() interface{} {
 	return globalProxyAPI
 }
 
+func SetProxyManager(m *proxy.Manager) {
+	globalProxyManager = m
+}
+
+func getHTTPClient(providerID, providerType string) *http.Client {
+	shouldProxy := false
+	if globalProxyManager != nil {
+		// Check by provider type first (openai, claude, etc.), fallback to provider ID
+		shouldProxy = globalProxyManager.ShouldProxy(providerType)
+		if !shouldProxy {
+			shouldProxy = globalProxyManager.ShouldProxy(providerID)
+		}
+	}
+
+	if shouldProxy && globalProxyManager.HasActiveProxies() {
+		p := globalProxyManager.SelectProxy(providerID, "")
+		if p != nil {
+			proxyURL, err := url.Parse(p.URL)
+			if err == nil {
+				return &http.Client{
+					Timeout:   120 * time.Second,
+					Transport: &http.Transport{Proxy: http.ProxyURL(proxyURL)},
+				}
+			}
+		}
+	}
+	return &http.Client{Timeout: 120 * time.Second}
+}
+
 func SetSettingsGetter(fn func(key string) string) {
 	globalSettingsGetter = fn
+}
+
+func SetGlobalDB(db *storage.DB) {
+	globalDB = db
+}
+
+func logUsage(providerID, modelName string, promptTokens, completionTokens int, status string, durationMs int) {
+	if globalDB == nil {
+		return
+	}
+	globalDB.InsertUsageLogEntry(context.Background(), &models.UsageLogEntry{
+		Timestamp:        time.Now(),
+		Model:            modelName,
+		ProviderID:       providerID,
+		PromptTokens:     promptTokens,
+		CompletionTokens: completionTokens,
+		TotalTokens:      promptTokens + completionTokens,
+		DurationMs:       durationMs,
+		Status:           status,
+	})
 }
 
 func getSetting(key string) string {
@@ -199,12 +255,20 @@ func HandleChatCompletions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	providerID, modelName := ParseModel(req.Model)
+	startTime := time.Now()
+	promptTokens := estimateTokens(body)
+
 	// Route to streaming or non-streaming handler
 	if req.Stream {
 		handleStreamingChat(w, r, &req, body)
 	} else {
 		handleNonStreamingChat(w, r, &req, body)
 	}
+
+	// Log usage after completion
+	durationMs := int(time.Since(startTime).Milliseconds())
+	logUsage(providerID, modelName, promptTokens, 0, "success", durationMs)
 }
 
 func handleNonStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatRequest, body []byte) {
@@ -429,7 +493,9 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 		}
 		translatedBody, _ = json.Marshal(kiroReq)
 	default:
-		translatedBody = body
+		// Strip provider prefix from model field (e.g., "oc/model" → "model")
+		reqMap["model"] = modelName
+		translatedBody, _ = json.Marshal(reqMap)
 	}
 
 	// Build request
@@ -443,7 +509,7 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 		reqHTTP.Header.Set(k, v)
 	}
 
-	client := &http.Client{Timeout: 120 * time.Second}
+	client := getHTTPClient(providerID, providerCfg.Type)
 	resp, err := client.Do(reqHTTP)
 	if err != nil {
 		writeSSE(w, flusher, map[string]interface{}{"error": fmt.Sprintf("provider request failed: %v", err)})
@@ -454,7 +520,8 @@ func handleStreamingChat(w http.ResponseWriter, r *http.Request, req *ChatReques
 
 	if resp.StatusCode >= 400 {
 		errBody, _ := io.ReadAll(resp.Body)
-		writeSSE(w, flusher, map[string]interface{}{"error": fmt.Sprintf("provider returned %d: %s", resp.StatusCode, string(errBody))})
+		log.Printf("Upstream provider error (streaming): status=%d, body=%s", resp.StatusCode, string(errBody))
+		writeSSE(w, flusher, map[string]interface{}{"error": fmt.Sprintf("provider error: %d", resp.StatusCode)})
 		writeSSE(w, flusher, "[DONE]")
 		return
 	}
@@ -800,7 +867,7 @@ func callProviderAPI(ctx context.Context, cfg *providers.ProviderConfig, model s
 	}
 
 	// Send
-	client := &http.Client{Timeout: 60 * time.Second}
+	client := getHTTPClient(cfg.Type, cfg.Type)
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("provider request failed: %w", err)
@@ -813,9 +880,10 @@ func callProviderAPI(ctx context.Context, cfg *providers.ProviderConfig, model s
 	}
 
 	if resp.StatusCode >= 400 {
+		log.Printf("Upstream provider error: status=%d, body=%s", resp.StatusCode, string(respBody))
 		return nil, &providerError{
 			statusCode: resp.StatusCode,
-			message:    fmt.Sprintf("provider returned %d: %s", resp.StatusCode, string(respBody)),
+			message:    fmt.Sprintf("provider error: %d", resp.StatusCode),
 		}
 	}
 

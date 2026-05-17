@@ -30,7 +30,10 @@ func TestGetNonExistent(t *testing.T) {
 }
 
 func TestMustGetExisting(t *testing.T) {
-	exec := MustGet("opencode")
+	exec, err := MustGet("opencode")
+	if err != nil {
+		t.Fatalf("MustGet opencode failed: %v", err)
+	}
 	if exec == nil {
 		t.Fatal("MustGet opencode returned nil")
 	}

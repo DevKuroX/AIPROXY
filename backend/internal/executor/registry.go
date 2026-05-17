@@ -3,6 +3,7 @@ package executor
 
 import (
 	"fmt"
+	"log"
 	"sync"
 )
 
@@ -12,15 +13,16 @@ var (
 )
 
 // Register adds an executor for a provider type to the global registry.
-// Panics if an executor is already registered for the provider type.
-func Register(providerType string, exec Executor) {
+// Returns an error if an executor is already registered for the provider type.
+func Register(providerType string, exec Executor) error {
 	registryMu.Lock()
 	defer registryMu.Unlock()
 
 	if _, exists := registry[providerType]; exists {
-		panic(fmt.Sprintf("executor already registered for provider type: %s", providerType))
+		return fmt.Errorf("executor already registered for provider type: %s", providerType)
 	}
 	registry[providerType] = exec
+	return nil
 }
 
 // Get retrieves an executor for a provider type from the registry.
@@ -33,13 +35,13 @@ func Get(providerType string) (Executor, bool) {
 	return exec, ok
 }
 
-// MustGet retrieves an executor for a provider type, panicking if not found.
-func MustGet(providerType string) Executor {
+// MustGet retrieves an executor for a provider type, returning an error if not found.
+func MustGet(providerType string) (Executor, error) {
 	exec, ok := Get(providerType)
 	if !ok {
-		panic(fmt.Sprintf("no executor registered for provider type: %s", providerType))
+		return nil, fmt.Errorf("no executor registered for provider type: %s", providerType)
 	}
-	return exec
+	return exec, nil
 }
 
 // ListProviders returns all registered provider types.
@@ -55,20 +57,25 @@ func ListProviders() []string {
 }
 
 func init() {
-	Register("codex", NewCodexExecutor(""))
-	Register("github", NewGitHubExecutor())
-	Register("opencode", NewOpenCodeExecutor())
-	Register("opencode-go", NewOpenCodeGoExecutor())
-	Register("ollama-local", NewOllamaLocalExecutor())
-    Register("antigravity", NewAntigravityExecutor(nil))
-    Register("azure", NewAzureExecutor())
-    Register("commandcode", NewCommandCodeExecutor())
-    Register("cursor", NewCursorExecutor())
-    Register("gemini-cli", NewGeminiCLIExecutor(nil))
-    Register("grok-web", NewGrokWebExecutor())
-    Register("iflow", NewIFlowExecutor())
-    Register("kiro", NewKiroExecutor())
-    Register("perplexity-web", NewPerplexityWebExecutor())
-    Register("qoder", NewQoderExecutor())
-    Register("qwen", NewQwenExecutor())
+	mustRegister := func(providerType string, exec Executor) {
+		if err := Register(providerType, exec); err != nil {
+			log.Fatalf("failed to register executor %s: %v", providerType, err)
+		}
+	}
+	mustRegister("codex", NewCodexExecutor(""))
+	mustRegister("github", NewGitHubExecutor())
+	mustRegister("opencode", NewOpenCodeExecutor())
+	mustRegister("opencode-go", NewOpenCodeGoExecutor())
+	mustRegister("ollama-local", NewOllamaLocalExecutor())
+	mustRegister("antigravity", NewAntigravityExecutor(nil))
+	mustRegister("azure", NewAzureExecutor())
+	mustRegister("commandcode", NewCommandCodeExecutor())
+	mustRegister("cursor", NewCursorExecutor())
+	mustRegister("gemini-cli", NewGeminiCLIExecutor(nil))
+	mustRegister("grok-web", NewGrokWebExecutor())
+	mustRegister("iflow", NewIFlowExecutor())
+	mustRegister("kiro", NewKiroExecutor())
+	mustRegister("perplexity-web", NewPerplexityWebExecutor())
+	mustRegister("qoder", NewQoderExecutor())
+	mustRegister("qwen", NewQwenExecutor())
 }

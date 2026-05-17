@@ -35,21 +35,21 @@ type toolCallInfo struct {
 }
 
 // NewOpenAIToCL4udeStream creates a new stream transformer
-func NewOpenAIToCL4udeStream(w io.Writer) *OpenAIToCL4udeStream {
+func NewOpenAIToCL4udeStream(w io.Writer) (*OpenAIToCL4udeStream, error) {
 	httpWriter, ok := w.(http.ResponseWriter)
 	if !ok {
-		panic("writer must be http.ResponseWriter for SSE streaming")
+		return nil, fmt.Errorf("writer must be http.ResponseWriter for SSE streaming")
 	}
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		panic("writer must support http.Flusher for SSE streaming")
+		return nil, fmt.Errorf("writer must support http.Flusher for SSE streaming")
 	}
 	return &OpenAIToCL4udeStream{
 		w:         httpWriter,
 		flush:     flusher,
 		messageID: fmt.Sprintf("msg_%d", time.Now().UnixNano()),
 		toolCalls: make(map[int]*toolCallInfo),
-	}
+	}, nil
 }
 
 // Write processes a line of OpenAI SSE and transforms to CL4ude format
@@ -341,19 +341,19 @@ type PassthroughWriter struct {
 }
 
 // NewPassthroughWriter creates a passthrough writer
-func NewPassthroughWriter(w io.Writer) *PassthroughWriter {
+func NewPassthroughWriter(w io.Writer) (*PassthroughWriter, error) {
 	httpWriter, ok := w.(http.ResponseWriter)
 	if !ok {
-		panic("writer must be http.ResponseWriter for SSE streaming")
+		return nil, fmt.Errorf("writer must be http.ResponseWriter for SSE streaming")
 	}
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		panic("writer must support http.Flusher for SSE streaming")
+		return nil, fmt.Errorf("writer must support http.Flusher for SSE streaming")
 	}
 	return &PassthroughWriter{
 		w:     httpWriter,
 		flush: flusher,
-	}
+	}, nil
 }
 
 // Write passes data through unchanged

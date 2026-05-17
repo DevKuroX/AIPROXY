@@ -12,7 +12,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DevKuroX/AIPROXY/internal/auth/crypto"
 	"github.com/DevKuroX/AIPROXY/internal/auth/oauth"
+	"github.com/DevKuroX/AIPROXY/internal/config"
 	"github.com/DevKuroX/AIPROXY/internal/storage"
 )
 
@@ -53,17 +55,17 @@ var ProviderConfigs = map[string]ProviderOAuthConfig{
 	},
 	"gemini": {
 		ClientID:     "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-		ClientSecret: "", // Set via GEMINI_CLIENT_SECRET env var
+		ClientSecret: config.GetConfig().GeminiClientSecret,
 		TokenURL:     "https://oauth2.googleapis.com/token",
 	},
 	"gemini-cli": {
 		ClientID:     "681255809395-oo8ft2oprdrnp9e3aqf6av3hmdib135j.apps.googleusercontent.com",
-		ClientSecret: "", // Set via GEMINI_CLIENT_SECRET env var
+		ClientSecret: config.GetConfig().GeminiClientSecret,
 		TokenURL:     "https://oauth2.googleapis.com/token",
 	},
 	"antigravity": {
 		ClientID:     "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com",
-		ClientSecret: "", // Set via ANTIGRAVITY_CLIENT_SECRET env var
+		ClientSecret: config.GetConfig().AntigravityClientSecret,
 		TokenURL:     "https://oauth2.googleapis.com/token",
 	},
 	"codex": {
@@ -80,7 +82,7 @@ var ProviderConfigs = map[string]ProviderOAuthConfig{
 	},
 	"iflow": {
 		ClientID:     "10009311001",
-		ClientSecret: "", // Set via IFLOW_CLIENT_SECRET env var
+		ClientSecret: config.GetConfig().IflowClientSecret,
 		TokenURL:     "https://iflow.cn/oauth/token",
 	},
 	"kiro": {
@@ -682,18 +684,22 @@ func (s *TokenRefreshService) saveToken(ctx context.Context, providerID, account
 	return err
 }
 
-// encryptToken encrypts a token using the encryption key.
+// encryptToken encrypts a token using AES-256-GCM via the crypto package.
 func (s *TokenRefreshService) encryptToken(token string) (string, error) {
-	// Use AES-256-GCM encryption from crypto package
-	// This is a placeholder - the actual implementation should use the crypto package
-	return token, nil // TODO: Implement actual encryption
+	encBytes, err := crypto.Encrypt([]byte(token), s.encryptionKey)
+	if err != nil {
+		return "", fmt.Errorf("token encryption failed: %w", err)
+	}
+	return string(encBytes), nil
 }
 
-// decryptToken decrypts a token using the encryption key.
+// decryptToken decrypts a token using AES-256-GCM via the crypto package.
 func (s *TokenRefreshService) decryptToken(encrypted string) (string, error) {
-	// Use AES-256-GCM decryption from crypto package
-	// This is a placeholder - the actual implementation should use the crypto package
-	return encrypted, nil // TODO: Implement actual decryption
+	decBytes, err := crypto.Decrypt([]byte(encrypted), s.encryptionKey)
+	if err != nil {
+		return "", fmt.Errorf("token decryption failed: %w", err)
+	}
+	return string(decBytes), nil
 }
 
 // getProviderName maps provider ID to provider name for configuration lookup.

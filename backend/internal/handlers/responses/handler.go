@@ -93,7 +93,6 @@ func (h *Handler) convertStreamToJSON(
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "no-cache")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(jsonResponse)
 	return err
@@ -111,7 +110,6 @@ func (h *Handler) transformStream(
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Create SSE reader from upstream response
 	sseReader := stream.NewSSEReader(upstreamResp.Body)

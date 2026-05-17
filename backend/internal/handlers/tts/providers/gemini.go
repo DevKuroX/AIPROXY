@@ -142,22 +142,45 @@ func (p *GeminiProvider) Synthesize(ctx context.Context, text string, model stri
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	candidates, _ := resp["candidates"].([]interface{})
-	if len(candidates) == 0 {
-		return nil, fmt.Errorf("Gemini TTS returned no candidates")
+	candidates, ok := resp["candidates"].([]interface{})
+	if !ok || len(candidates) == 0 {
+		return nil, fmt.Errorf("Gemini TTS: invalid or empty candidates")
 	}
 
-	candidate, _ := candidates[0].(map[string]interface{})
-	content, _ := candidate["content"].(map[string]interface{})
-	parts, _ := content["parts"].([]interface{})
-	if len(parts) == 0 {
-		return nil, fmt.Errorf("Gemini TTS returned no parts")
+	candidate, ok := candidates[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Gemini TTS: invalid candidate type")
 	}
 
-	part, _ := parts[0].(map[string]interface{})
-	inlineData, _ := part["inlineData"].(map[string]interface{})
-	mimeType, _ := inlineData["mimeType"].(string)
-	data, _ := inlineData["data"].(string)
+	content, ok := candidate["content"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Gemini TTS: invalid content type")
+	}
+
+	parts, ok := content["parts"].([]interface{})
+	if !ok || len(parts) == 0 {
+		return nil, fmt.Errorf("Gemini TTS: invalid or empty parts")
+	}
+
+	part, ok := parts[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Gemini TTS: invalid part type")
+	}
+
+	inlineData, ok := part["inlineData"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Gemini TTS: invalid inlineData")
+	}
+
+	mimeType, ok := inlineData["mimeType"].(string)
+	if !ok {
+		return nil, fmt.Errorf("Gemini TTS: invalid mimeType")
+	}
+
+	data, ok := inlineData["data"].(string)
+	if !ok {
+		return nil, fmt.Errorf("Gemini TTS: invalid data")
+	}
 
 	if data == "" {
 		return nil, fmt.Errorf("Gemini TTS returned no audio data")

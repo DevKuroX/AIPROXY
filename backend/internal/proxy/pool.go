@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 )
 
 type Manager struct {
@@ -63,6 +65,17 @@ func (m *Manager) ShouldProxy(provider string) bool {
 	default:
 		return true
 	}
+}
+
+func (m *Manager) HasActiveProxies() bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	for _, p := range m.proxies["all"] {
+		if p.Status == StatusOK {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *Manager) SelectProxy(provider, preferredRegion string) *Proxy {
@@ -174,6 +187,37 @@ func (m *Manager) CreatePool(p *ProxyPool) error {
 func (m *Manager) DeletePool(id string) error {
 	return m.store.DeletePool(context.Background(), id)
 }
+func (m *Manager) TestAllPools() map[string]int {
+	pools, _ := m.store.GetPools(context.Background())
+	result := map[string]int{"ok": 0, "fail": 0}
+	limit := make(chan struct{}, 20)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	for _, pool := range pools {
+		wg.Add(1)
+		limit <- struct{}{}
+		go func(p *ProxyPool) {
+			defer wg.Done()
+			defer func() { <-limit }()
+			alive, latencyMs := TestProxyQuick(p.ProxyURL)
+			mu.Lock()
+			p.LatencyMs = latencyMs
+			now := time.Now(); p.LastTestedAt = &now
+			if alive {
+				p.TestStatus = "ok"
+				result["ok"]++
+			} else {
+				p.TestStatus = "error"
+				result["fail"]++
+			}
+			m.store.SavePool(context.Background(), p)
+			mu.Unlock()
+		}(pool)
+	}
+	wg.Wait()
+	return result
+}
+
 func (m *Manager) TestPool(id string) (map[string]interface{}, error) {
 	pools, err := m.store.GetPools(context.Background(), )
 	if err != nil {
@@ -182,6 +226,18 @@ func (m *Manager) TestPool(id string) (map[string]interface{}, error) {
 	for _, pool := range pools {
 		if pool.ID == id {
 			testResult := TestProxy(pool.ProxyURL)
+			pool.TestStatus = "unknown"
+			pool.LastError = ""
+			pool.LatencyMs = testResult.LatencyMs
+			pool.Region = testResult.Region
+			now := time.Now(); pool.LastTestedAt = &now
+			if testResult.Alive {
+				pool.TestStatus = "ok"
+			} else {
+				pool.TestStatus = "error"
+				pool.LastError = testResult.Error
+			}
+			m.store.SavePool(context.Background(), pool)
 			return map[string]interface{}{
 				"alive":      testResult.Alive,
 				"latency_ms": testResult.LatencyMs,
@@ -208,6 +264,60 @@ func (m *Manager) RunScraper() {
 			m.store.SaveProxy(context.Background(), p)
 		}
 	}
+}
+
+func (m *Manager) ScrapeWebshare() int {
+	apiKey := m.settings.WebshareAPIKey
+	if apiKey == "" {
+		return 0
+	}
+	client := &http.Client{Timeout: 30 * time.Second}
+	count := 0
+	now := time.Now()
+	for page := 1; page <= 10; page++ {
+		url := fmt.Sprintf("https://proxy.webshare.io/api/v2/proxy/list/?page=%d&page_size=100&mode=direct", page)
+		req, _ := http.NewRequest("GET", url, nil)
+		req.Header.Set("Authorization", "Token "+apiKey)
+		resp, err := client.Do(req)
+		if err != nil {
+			break
+		}
+		var data struct {
+			Results []struct {
+				ProxyAddress string `json:"proxy_address"`
+				Port         int    `json:"port"`
+				Username     string `json:"username"`
+				Password     string `json:"password"`
+			} `json:"results"`
+			Next string `json:"next"`
+		}
+		json.NewDecoder(resp.Body).Decode(&data)
+		resp.Body.Close()
+		for _, p := range data.Results {
+			for _, proto := range []string{"socks5", "http"} {
+				u := fmt.Sprintf("%s://%s:%s@%s:%d", proto, p.Username, p.Password, p.ProxyAddress, p.Port)
+
+				m.store.SaveProxy(context.Background(), &Proxy{
+					URL:    u,
+					Status: StatusOK,
+					Source: "webshare",
+				})
+
+				poolID := fmt.Sprintf("ws-%d-%d", now.UnixMilli(), count)
+				m.store.SavePool(context.Background(), &ProxyPool{
+					ID:       poolID,
+					Name:     fmt.Sprintf("WS-%s:%d", p.ProxyAddress, p.Port),
+					ProxyURL: u,
+					IsActive: true,
+				})
+				count++
+			}
+		}
+		if data.Next == "" || data.Next == "null" || len(data.Results) == 0 {
+			break
+		}
+	}
+	return count
 }
 func (m *Manager) GetScraperProgress() map[string]interface{} {
 	return map[string]interface{}{
