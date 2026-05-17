@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -30,12 +31,12 @@ func (db *DB) ListUsageLogs(ctx context.Context, start, end time.Time, provider,
 
 	var args []interface{}
 	argIdx := 1
-	conditions := "WHERE created_at BETWEEN $1 AND $2"
+	conditions := "WHERE timestamp BETWEEN $1 AND $2"
 	args = append(args, start, end)
 
 	if provider != "" {
 		argIdx++
-		conditions += " AND provider = $" + strconv.Itoa(argIdx)
+		conditions += " AND provider_id = $" + strconv.Itoa(argIdx)
 		args = append(args, provider)
 	}
 	if model != "" {
@@ -45,13 +46,13 @@ func (db *DB) ListUsageLogs(ctx context.Context, start, end time.Time, provider,
 	}
 
 	var total int
-	countQuery := "SELECT COUNT(*) FROM usage_logs " + conditions
+	countQuery := "SELECT COUNT(*) FROM usage_log " + conditions
 	err := db.pool.QueryRow(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	query := "SELECT id, api_key_id, provider, model, input_tokens, output_tokens, total_tokens, cost, request_id, status, latency_ms, created_at FROM usage_logs " + conditions + " ORDER BY created_at DESC LIMIT $" + strconv.Itoa(len(args)+1) + " OFFSET $" + strconv.Itoa(len(args)+2)
+	query := "SELECT id, COALESCE(api_key_id,''), provider_id, model, prompt_tokens, completion_tokens, total_tokens, cost_usd, COALESCE(status,''), duration_ms, timestamp FROM usage_log " + conditions + " ORDER BY timestamp DESC LIMIT $" + strconv.Itoa(len(args)+1) + " OFFSET $" + strconv.Itoa(len(args)+2)
 	args = append(args, limit, offset)
 
 	rows, err := db.pool.Query(ctx, query, args...)
@@ -63,8 +64,15 @@ func (db *DB) ListUsageLogs(ctx context.Context, start, end time.Time, provider,
 	var logs []models.UsageLog
 	for rows.Next() {
 		var l models.UsageLog
-		if err := rows.Scan(&l.ID, &l.APIKeyID, &l.Provider, &l.Model, &l.InputTokens, &l.OutputTokens, &l.TotalTokens, &l.Cost, &l.RequestID, &l.Status, &l.LatencyMs, &l.CreatedAt); err != nil {
+		var id int
+		var apiKeyID, status string
+		if err := rows.Scan(&id, &apiKeyID, &l.Provider, &l.Model, &l.InputTokens, &l.OutputTokens, &l.TotalTokens, &l.Cost, &status, &l.LatencyMs, &l.CreatedAt); err != nil {
 			return nil, 0, err
+		}
+		l.ID = fmt.Sprintf("%d", id)
+		l.APIKeyID = apiKeyID
+		if status == "success" || status == "ok" {
+			l.Status = 1
 		}
 		logs = append(logs, l)
 	}
@@ -79,7 +87,7 @@ func (db *DB) GetUsageStats(ctx context.Context, start, end time.Time) (*UsageSt
 	}
 
 	err := db.pool.QueryRow(ctx,
-		"SELECT COALESCE(SUM(total_tokens), 0), COALESCE(SUM(cost), 0) FROM usage_logs WHERE created_at BETWEEN $1 AND $2",
+		"SELECT COALESCE(SUM(total_tokens), 0), COALESCE(SUM(cost_usd), 0) FROM usage_log WHERE timestamp BETWEEN $1 AND $2",
 		start, end,
 	).Scan(&stats.TotalTokens, &stats.TotalCost)
 	if err != nil {
@@ -87,7 +95,7 @@ func (db *DB) GetUsageStats(ctx context.Context, start, end time.Time) (*UsageSt
 	}
 
 	rows, err := db.pool.Query(ctx,
-		"SELECT model, SUM(total_tokens), SUM(cost) FROM usage_logs WHERE created_at BETWEEN $1 AND $2 GROUP BY model",
+		"SELECT model, SUM(total_tokens), SUM(cost_usd) FROM usage_log WHERE timestamp BETWEEN $1 AND $2 GROUP BY model",
 		start, end,
 	)
 	if err != nil {
@@ -105,7 +113,7 @@ func (db *DB) GetUsageStats(ctx context.Context, start, end time.Time) (*UsageSt
 	}
 
 	rows, err = db.pool.Query(ctx,
-		"SELECT provider, SUM(total_tokens), SUM(cost) FROM usage_logs WHERE created_at BETWEEN $1 AND $2 GROUP BY provider",
+		"SELECT provider_id, SUM(total_tokens), SUM(cost_usd) FROM usage_log WHERE timestamp BETWEEN $1 AND $2 GROUP BY provider_id",
 		start, end,
 	)
 	if err != nil {

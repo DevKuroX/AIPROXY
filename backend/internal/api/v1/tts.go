@@ -99,7 +99,6 @@ func HandleTTSSpeech(w http.ResponseWriter, r *http.Request) {
 	// ref: open-sse/handlers/ttsCore.js:15-42
 	w.Header().Set("Content-Type", "audio/"+result.Format)
 	w.Header().Set("Content-Length", strconv.Itoa(len(result.Audio)))
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
 	w.Write(result.Audio)
 }

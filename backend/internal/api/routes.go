@@ -1,43 +1,56 @@
 package api
 
 import (
+	"bufio"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/DevKuroX/AIPROXY/internal/api/admin"
+	"github.com/DevKuroX/AIPROXY/internal/api/chat"
 	"github.com/DevKuroX/AIPROXY/internal/api/middleware"
 	"github.com/DevKuroX/AIPROXY/internal/api/v1"
 	"github.com/DevKuroX/AIPROXY/internal/router"
+	"github.com/DevKuroX/AIPROXY/internal/storage"
 )
 
 type Router struct {
-	jwtSecret string
-	users     admin.UserStore
-	keyStore  middleware.KeyStore
-	apiSecret string
-	analytics admin.AnalyticsStore
-	nodes     admin.NodeStore
-	accounts  admin.AccountStore
-	combos    admin.ComboStore
-	aliases   admin.AliasStore
-	keys      admin.KeyStore
+	jwtSecret         string
+	users             admin.UserStore
+	keyStore          middleware.KeyStore
+	apiSecret         string
+	analytics         admin.AnalyticsStore
+	nodes             admin.NodeStore
+	accounts          admin.AccountStore
+	combos            admin.ComboStore
+	aliases           admin.AliasStore
+	keys              admin.KeyStore
+	db                *storage.DB
+	githubClientID    string
+	githubClientSecret string
 }
 
-func NewRouter(jwtSecret string, users admin.UserStore, keyStore middleware.KeyStore, apiSecret string, analytics admin.AnalyticsStore, nodes admin.NodeStore, accounts admin.AccountStore, combos admin.ComboStore, aliases admin.AliasStore, keys admin.KeyStore) *Router {
+func NewRouter(jwtSecret string, users admin.UserStore, keyStore middleware.KeyStore, apiSecret string, analytics admin.AnalyticsStore, nodes admin.NodeStore, accounts admin.AccountStore, combos admin.ComboStore, aliases admin.AliasStore, keys admin.KeyStore, db *storage.DB, githubClientID, githubClientSecret string) *Router {
 	return &Router{
-		jwtSecret: jwtSecret,
-		users:     users,
-		keyStore:  keyStore,
-		apiSecret: apiSecret,
-		analytics: analytics,
-		nodes:     nodes,
-		accounts:  accounts,
-		combos:    combos,
-		aliases:   aliases,
-		keys:      keys,
+		jwtSecret:         jwtSecret,
+		users:             users,
+		keyStore:          keyStore,
+		apiSecret:         apiSecret,
+		analytics:         analytics,
+		nodes:             nodes,
+		accounts:          accounts,
+		combos:            combos,
+		aliases:           aliases,
+		keys:              keys,
+		db:                db,
+		githubClientID:    githubClientID,
+		githubClientSecret: githubClientSecret,
 	}
 }
 
-func (r *Router) Routes() *http.ServeMux {
+func (r *Router) Routes() http.Handler {
 	mux := http.NewServeMux()
 
 	authHandler := admin.NewHandler(r.jwtSecret, r.users)
@@ -48,15 +61,17 @@ func (r *Router) Routes() *http.ServeMux {
 	authMiddleware := middleware.RequireAuth(r.jwtSecret)
 	protectedMux := http.NewServeMux()
 	protectedMux.HandleFunc("GET /api/me", authHandler.Me)
+	protectedMux.HandleFunc("GET /api/providers", v1.HandleListProviders)
 
 	mux.Handle("/api/me", authMiddleware(protectedMux))
+	mux.Handle("/api/providers", authMiddleware(protectedMux))
 
 	analyticsHandler := admin.NewAnalyticsHandler(r.analytics)
 	nodeHandler := admin.NewNodeHandler(r.nodes)
 	accountHandler := admin.NewAccountHandler(r.accounts)
 	comboHandler := admin.NewComboHandler(r.combos)
 	aliasHandler := admin.NewAliasHandler(r.aliases)
-	keyHandler := admin.NewKeyHandler(r.keys)
+	keyHandler := admin.NewKeyHandler(r.keys, r.apiSecret)
 
 	adminMux := http.NewServeMux()
 
@@ -98,7 +113,28 @@ func (r *Router) Routes() *http.ServeMux {
 	adminMux.HandleFunc("POST /api/admin/keys", keyHandler.Create)
 	adminMux.HandleFunc("DELETE /api/admin/keys/{id}", keyHandler.Delete)
 
-	mux.Handle("/api/admin/", authMiddleware(adminMux))
+	rateLimiter := middleware.NewRateLimiter()
+	mux.Handle("/api/admin/", authMiddleware(rateLimiter.RateLimitByIP(adminMux)))
+
+	chatHandler := chat.NewHandler(r.db, r.apiSecret)
+	chatMux := http.NewServeMux()
+	chatMux.HandleFunc("GET /api/chat/sessions", chatHandler.ListSessions)
+	chatMux.HandleFunc("POST /api/chat/sessions", chatHandler.CreateSession)
+	chatMux.HandleFunc("DELETE /api/chat/sessions/{id}", chatHandler.DeleteSession)
+	chatMux.HandleFunc("GET /api/chat/sessions/{id}/messages", chatHandler.ListMessages)
+	chatMux.HandleFunc("POST /api/chat/sessions/{id}/messages", chatHandler.SaveMessage)
+	chatMux.HandleFunc("GET /api/chat/artifacts/{id}", chatHandler.GetArtifact)
+	chatMux.HandleFunc("POST /api/chat/artifacts", chatHandler.CreateArtifact)
+	chatMux.HandleFunc("POST /api/chat/completions", chatHandler.StreamCompletion)
+	chatMux.HandleFunc("POST /api/chat/sessions/{id}/generate-title", chatHandler.GenerateTitle)
+	chatMux.HandleFunc("POST /api/chat/files", chatHandler.UploadFile)
+	chatMux.HandleFunc("GET /api/chat/models", chatHandler.ListProviderModels)
+
+	githubHandler := chat.NewGitHubHandler(r.db, r.githubClientID, r.githubClientSecret)
+	chatMux.HandleFunc("POST /api/chat/github/auth/start", githubHandler.StartAuth)
+	chatMux.HandleFunc("POST /api/chat/github/auth/poll", githubHandler.PollAuth)
+	chatMux.HandleFunc("POST /api/chat/github/api", githubHandler.ProxyAPI)
+	mux.Handle("/api/chat/", authMiddleware(rateLimiter.RateLimitByIP(chatMux)))
 
 	adminAuthMiddleware := requireAdminAuth(r.jwtSecret)
 	metricsMux := http.NewServeMux()
@@ -143,27 +179,126 @@ func (r *Router) Routes() *http.ServeMux {
 	proxyMux.HandleFunc("GET /v1/models/info", v1.HandleModelInfo)
 	proxyMux.HandleFunc("GET /v1/models/{kind}", v1.HandleModelsByKind)
 
-	mux.Handle("/v1/", apiKeyMiddleware(proxyMux))
+	rateLimitedMux := rateLimiter.RateLimitByIP(proxyMux)
+	mux.Handle("/v1/", apiKeyMiddleware(rateLimitedMux))
+
+	mux.Handle("GET /api/translator/console-logs/stream", authMiddleware(http.HandlerFunc(handleConsoleLogStream)))
+	mux.Handle("DELETE /api/translator/console-logs", authMiddleware(http.HandlerFunc(handleConsoleLogClear)))
 
 	// Usage/quota endpoint for Kiro
 	usageHandler := NewUsageHandler(router.GetGlobalPool())
-	mux.HandleFunc("GET /api/usage/kiro", usageHandler.GetKiroUsage)
+	mux.Handle("GET /api/usage/kiro", apiKeyMiddleware(http.HandlerFunc(usageHandler.GetKiroUsage)))
 
-	// Proxy API
 	if p := router.GetProxyAPI(); p != nil {
 		proxyAPI := p.(*ProxyAPI)
-		mux.HandleFunc("GET /api/proxies", proxyAPI.ListProxies)
-		mux.HandleFunc("POST /api/proxies", proxyAPI.AddProxy)
-		mux.HandleFunc("DELETE /api/proxies/{id}", proxyAPI.DeleteProxy)
-		mux.HandleFunc("GET /api/proxy-pools", proxyAPI.ListPools)
-		mux.HandleFunc("POST /api/proxy-pools", proxyAPI.CreatePool)
-		mux.HandleFunc("DELETE /api/proxy-pools/{id}", proxyAPI.DeletePool)
-		mux.HandleFunc("POST /api/proxy-pools/{id}/test", proxyAPI.TestPool)
-		mux.HandleFunc("GET /api/proxy/settings", proxyAPI.GetSettings)
-		mux.HandleFunc("POST /api/proxy/settings", proxyAPI.UpdateSettings)
-		mux.HandleFunc("POST /api/scraper/start", proxyAPI.StartScraper)
-		mux.HandleFunc("GET /api/scraper/progress", proxyAPI.ScraperProgress)
+		proxyMgmtMux := http.NewServeMux()
+		proxyMgmtMux.HandleFunc("GET /api/proxies", proxyAPI.ListProxies)
+		proxyMgmtMux.HandleFunc("POST /api/proxies", proxyAPI.AddProxy)
+		proxyMgmtMux.HandleFunc("DELETE /api/proxies/{id}", proxyAPI.DeleteProxy)
+		proxyMgmtMux.HandleFunc("GET /api/proxy-pools", proxyAPI.ListPools)
+		proxyMgmtMux.HandleFunc("POST /api/proxy-pools", proxyAPI.CreatePool)
+		proxyMgmtMux.HandleFunc("DELETE /api/proxy-pools/{id}", proxyAPI.DeletePool)
+		proxyMgmtMux.HandleFunc("POST /api/proxy-pools/test-all", proxyAPI.TestAllPools)
+		proxyMgmtMux.HandleFunc("POST /api/proxy-pools/{id}/test", proxyAPI.TestPool)
+		proxyMgmtMux.HandleFunc("GET /api/proxy/settings", proxyAPI.GetSettings)
+		proxyMgmtMux.HandleFunc("POST /api/proxy/settings", proxyAPI.UpdateSettings)
+		proxyMgmtMux.HandleFunc("POST /api/scraper/start", proxyAPI.StartScraper)
+		proxyMgmtMux.HandleFunc("POST /api/scraper/webshare", proxyAPI.ScrapeWebshare)
+		proxyMgmtMux.HandleFunc("GET /api/scraper/progress", proxyAPI.ScraperProgress)
+		rateLimitedProxyMgmt := rateLimiter.RateLimitByIP(proxyMgmtMux)
+		mux.Handle("/api/proxies", apiKeyMiddleware(rateLimitedProxyMgmt))
+		mux.Handle("/api/proxies/", apiKeyMiddleware(rateLimitedProxyMgmt))
+		mux.Handle("/api/proxy-pools", apiKeyMiddleware(rateLimitedProxyMgmt))
+		mux.Handle("/api/proxy-pools/", apiKeyMiddleware(rateLimitedProxyMgmt))
+		mux.Handle("/api/proxy/", apiKeyMiddleware(rateLimitedProxyMgmt))
+		mux.Handle("/api/scraper/", apiKeyMiddleware(rateLimitedProxyMgmt))
 	}
 
-	return mux
+	return middleware.CORS(mux)
 }
+
+func handleConsoleLogStream(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	flusher, _ := w.(http.Flusher)
+
+	logFiles := []string{"/tmp/aiproxy-run.log", "/home/ubuntu/ai_proxy/backend/bin/server.log"}
+	var logFile string
+	for _, f := range logFiles {
+		if _, err := os.Stat(f); err == nil {
+			logFile = f
+			break
+		}
+	}
+
+	if logFile == "" {
+		msg, _ := json.Marshal(map[string]string{"type": "init"})
+		fmt.Fprintf(w, "data: %s\n\n", msg)
+		flusher.Flush()
+		<-r.Context().Done()
+		return
+	}
+
+	f, _ := os.Open(logFile)
+	defer f.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if len(lines) > 200 {
+		lines = lines[len(lines)-200:]
+	}
+
+	initMsg, _ := json.Marshal(map[string]interface{}{"type": "init", "logs": lines})
+	fmt.Fprintf(w, "data: %s\n\n", initMsg)
+	flusher.Flush()
+
+	lastSize := len(lines)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			return
+		case <-ticker.C:
+			f2, _ := os.Open(logFile)
+			if f2 == nil {
+				continue
+			}
+			fi, _ := f2.Stat()
+			if fi == nil {
+				f2.Close()
+				continue
+			}
+			if fi.Size() == 0 {
+				f2.Close()
+				continue
+			}
+			f2.Seek(0, 0)
+			scanner2 := bufio.NewScanner(f2)
+			var allLines []string
+			for scanner2.Scan() {
+				allLines = append(allLines, scanner2.Text())
+			}
+			f2.Close()
+			if len(allLines) > lastSize {
+				for _, line := range allLines[lastSize:] {
+					msg, _ := json.Marshal(map[string]string{"type": "line", "line": line})
+					fmt.Fprintf(w, "data: %s\n\n", msg)
+				}
+				flusher.Flush()
+				lastSize = len(allLines)
+			}
+		}
+	}
+}
+
+func handleConsoleLogClear(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+

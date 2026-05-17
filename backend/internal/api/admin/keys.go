@@ -2,11 +2,10 @@ package admin
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 
+	"github.com/DevKuroX/AIPROXY/internal/auth"
 	"github.com/DevKuroX/AIPROXY/internal/models"
 	"github.com/DevKuroX/AIPROXY/internal/storage"
 )
@@ -19,19 +18,12 @@ type KeyStore interface {
 }
 
 type KeyHandler struct {
-	store KeyStore
+	store  KeyStore
+	secret string
 }
 
-func NewKeyHandler(store KeyStore) *KeyHandler {
-	return &KeyHandler{store: store}
-}
-
-func generateAPIKey() (string, error) {
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return "sk-" + hex.EncodeToString(bytes), nil
+func NewKeyHandler(store KeyStore, secret string) *KeyHandler {
+	return &KeyHandler{store: store, secret: secret}
 }
 
 func (h *KeyHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -73,14 +65,15 @@ func (h *KeyHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	keyValue, err := generateAPIKey()
+	key, keyHash, err := auth.GenerateAPIKey(h.secret)
 	if err != nil {
 		http.Error(w, "Failed to generate API key", http.StatusInternalServerError)
 		return
 	}
 
 	apiKey := &models.APIKey{
-		Key:      keyValue,
+		Key:      key,
+		KeyHash:  keyHash,
 		Name:     req.Name,
 		IsActive: true,
 	}

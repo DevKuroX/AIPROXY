@@ -3,6 +3,7 @@ package admin
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/DevKuroX/AIPROXY/internal/api/middleware"
 	"github.com/DevKuroX/AIPROXY/internal/auth"
@@ -19,14 +20,15 @@ type loginResponse struct {
 }
 
 type meResponse struct {
-	ID      string `json:"id"`
+	ID       string `json:"id"`
 	Username string `json:"username"`
-	IsAdmin bool   `json:"is_admin"`
+	IsAdmin  bool   `json:"is_admin"`
 }
 
 type Handler struct {
 	jwtSecret string
 	users     UserStore
+	cookieAge int
 }
 
 type UserStore interface {
@@ -44,6 +46,7 @@ func NewHandler(jwtSecret string, users UserStore) *Handler {
 	return &Handler{
 		jwtSecret: jwtSecret,
 		users:     users,
+		cookieAge: 86400,
 	}
 }
 
@@ -76,11 +79,32 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:     "jwt_token",
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   h.cookieAge,
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(loginResponse{Token: token})
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "jwt_token",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+	})
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "logged out successfully"})
 }

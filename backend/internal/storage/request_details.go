@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -107,31 +108,31 @@ func (s *RequestDetailStore) GetRequestDetails(ctx context.Context, filters Requ
 	argIndex := 1
 
 	if filters.StartTime != nil {
-		query += " AND timestamp >= $" + string(rune('0'+argIndex))
+		query += " AND timestamp >= $" + strconv.Itoa(argIndex)
 		args = append(args, *filters.StartTime)
 		argIndex++
 	}
 
 	if filters.EndTime != nil {
-		query += " AND timestamp <= $" + string(rune('0'+argIndex))
+		query += " AND timestamp <= $" + strconv.Itoa(argIndex)
 		args = append(args, *filters.EndTime)
 		argIndex++
 	}
 
 	if filters.ProviderID != nil {
-		query += " AND provider_id = $" + string(rune('0'+argIndex))
+		query += " AND provider_id = $" + strconv.Itoa(argIndex)
 		args = append(args, *filters.ProviderID)
 		argIndex++
 	}
 
 	if filters.Model != nil {
-		query += " AND model = $" + string(rune('0'+argIndex))
+		query += " AND model = $" + strconv.Itoa(argIndex)
 		args = append(args, *filters.Model)
 		argIndex++
 	}
 
 	if filters.StatusCode != nil {
-		query += " AND status_code = $" + string(rune('0'+argIndex))
+		query += " AND status_code = $" + strconv.Itoa(argIndex)
 		args = append(args, *filters.StatusCode)
 		argIndex++
 	}
@@ -139,13 +140,13 @@ func (s *RequestDetailStore) GetRequestDetails(ctx context.Context, filters Requ
 	query += " ORDER BY timestamp DESC"
 	
 	if filters.Limit > 0 {
-		query += " LIMIT $" + string(rune('0'+argIndex))
+		query += " LIMIT $" + strconv.Itoa(argIndex)
 		args = append(args, filters.Limit)
 		argIndex++
 	}
 
 	if filters.Offset > 0 {
-		query += " OFFSET $" + string(rune('0'+argIndex))
+		query += " OFFSET $" + strconv.Itoa(argIndex)
 		args = append(args, filters.Offset)
 	}
 

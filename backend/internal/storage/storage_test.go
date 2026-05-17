@@ -12,7 +12,7 @@ func testDB(t *testing.T) *DB {
 	if dbURL == "" {
 		dbURL = "postgresql://aiproxy:aiproxy123@localhost:5432/aiproxy?sslmode=disable"
 	}
-	db, err := New(context.Background(), dbURL)
+	db, err := New(context.Background(), dbURL, nil)
 	if err != nil {
 		t.Fatalf("Failed to connect to DB: %v", err)
 	}

@@ -21,9 +21,14 @@ func (db *DB) CreateProvider(ctx context.Context, provider *models.Provider) err
 	provider.CreatedAt = now
 	provider.UpdatedAt = now
 
-	_, err := db.pool.Exec(ctx,
+	encKey, err := db.encryptAPIKey(provider.APIKey)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.pool.Exec(ctx,
 		"INSERT INTO providers (id, name, type, base_url, api_key, enabled, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-		provider.ID, provider.Name, provider.Type, provider.BaseURL, provider.APIKey, provider.Enabled, provider.CreatedAt, provider.UpdatedAt,
+		provider.ID, provider.Name, provider.Type, provider.BaseURL, encKey, provider.Enabled, provider.CreatedAt, provider.UpdatedAt,
 	)
 	return err
 }
@@ -41,6 +46,13 @@ func (db *DB) GetProviderByID(ctx context.Context, id string) (*models.Provider,
 	if err != nil {
 		return nil, err
 	}
+
+	decKey, err := db.decryptAPIKey(provider.APIKey)
+	if err != nil {
+		return nil, err
+	}
+	provider.APIKey = decKey
+
 	return &provider, nil
 }
 
@@ -59,6 +71,11 @@ func (db *DB) ListProviders(ctx context.Context) ([]models.Provider, error) {
 		if err := rows.Scan(&p.ID, &p.Name, &p.Type, &p.BaseURL, &p.APIKey, &p.Enabled, &p.CreatedAt, &p.UpdatedAt); err != nil {
 			return nil, err
 		}
+		decKey, err := db.decryptAPIKey(p.APIKey)
+		if err != nil {
+			return nil, err
+		}
+		p.APIKey = decKey
 		providers = append(providers, p)
 	}
 	return providers, rows.Err()
@@ -66,9 +83,15 @@ func (db *DB) ListProviders(ctx context.Context) ([]models.Provider, error) {
 
 func (db *DB) UpdateProvider(ctx context.Context, provider *models.Provider) error {
 	provider.UpdatedAt = time.Now()
+
+	encKey, err := db.encryptAPIKey(provider.APIKey)
+	if err != nil {
+		return err
+	}
+
 	result, err := db.pool.Exec(ctx,
 		"UPDATE providers SET name = $1, type = $2, base_url = $3, api_key = $4, enabled = $5, updated_at = $6 WHERE id = $7",
-		provider.Name, provider.Type, provider.BaseURL, provider.APIKey, provider.Enabled, provider.UpdatedAt, provider.ID,
+		provider.Name, provider.Type, provider.BaseURL, encKey, provider.Enabled, provider.UpdatedAt, provider.ID,
 	)
 	if err != nil {
 		return err
@@ -96,9 +119,14 @@ func (db *DB) CreateProviderAccount(ctx context.Context, account *models.Provide
 	}
 	account.CreatedAt = time.Now()
 
-	_, err := db.pool.Exec(ctx,
+	encKey, err := db.encryptAPIKey(account.APIKey)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.pool.Exec(ctx,
 		"INSERT INTO provider_accounts (id, provider_id, name, api_key, is_active, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
-		account.ID, account.ProviderID, account.Name, account.APIKey, account.IsActive, account.CreatedAt,
+		account.ID, account.ProviderID, account.Name, encKey, account.IsActive, account.CreatedAt,
 	)
 	return err
 }
@@ -116,14 +144,29 @@ func (db *DB) GetProviderAccountByID(ctx context.Context, id string) (*models.Pr
 	if err != nil {
 		return nil, err
 	}
+
+	decKey, err := db.decryptAPIKey(account.APIKey)
+	if err != nil {
+		return nil, err
+	}
+	account.APIKey = decKey
+
 	return &account, nil
 }
 
 func (db *DB) ListProviderAccounts(ctx context.Context, providerID string) ([]models.ProviderAccount, error) {
-	rows, err := db.pool.Query(ctx,
-		"SELECT id, provider_id, name, api_key, is_active, created_at FROM provider_accounts WHERE provider_id = $1 ORDER BY created_at DESC",
-		providerID,
-	)
+	var rows pgx.Rows
+	var err error
+	if providerID == "" {
+		rows, err = db.pool.Query(ctx,
+			"SELECT id, provider_id, name, api_key, is_active, created_at FROM provider_accounts ORDER BY created_at DESC",
+		)
+	} else {
+		rows, err = db.pool.Query(ctx,
+			"SELECT id, provider_id, name, api_key, is_active, created_at FROM provider_accounts WHERE provider_id = $1 ORDER BY created_at DESC",
+			providerID,
+		)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -135,15 +178,25 @@ func (db *DB) ListProviderAccounts(ctx context.Context, providerID string) ([]mo
 		if err := rows.Scan(&a.ID, &a.ProviderID, &a.Name, &a.APIKey, &a.IsActive, &a.CreatedAt); err != nil {
 			return nil, err
 		}
+		decKey, err := db.decryptAPIKey(a.APIKey)
+		if err != nil {
+			return nil, err
+		}
+		a.APIKey = decKey
 		accounts = append(accounts, a)
 	}
 	return accounts, rows.Err()
 }
 
 func (db *DB) UpdateProviderAccount(ctx context.Context, account *models.ProviderAccount) error {
+	encKey, err := db.encryptAPIKey(account.APIKey)
+	if err != nil {
+		return err
+	}
+
 	result, err := db.pool.Exec(ctx,
 		"UPDATE provider_accounts SET name = $1, api_key = $2, is_active = $3 WHERE id = $4",
-		account.Name, account.APIKey, account.IsActive, account.ID,
+		account.Name, encKey, account.IsActive, account.ID,
 	)
 	if err != nil {
 		return err

@@ -6,22 +6,18 @@ import (
 	"time"
 
 	"github.com/DevKuroX/AIPROXY/internal/models"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 var ErrAPIKeyNotFound = errors.New("api key not found")
 
 func (db *DB) CreateAPIKey(ctx context.Context, key *models.APIKey) error {
-	if key.ID == "" {
-		key.ID = uuid.New().String()
-	}
 	key.CreatedAt = time.Now()
 
-	_, err := db.pool.Exec(ctx,
-		"INSERT INTO api_keys (id, key, key_hash, name, is_active, created_at, last_used_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-		key.ID, key.Key, key.KeyHash, key.Name, key.IsActive, key.CreatedAt, key.LastUsedAt,
-	)
+	err := db.pool.QueryRow(ctx,
+		"INSERT INTO api_keys (key, key_hash, name, is_active, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		key.Key, key.KeyHash, key.Name, key.IsActive, key.CreatedAt,
+	).Scan(&key.ID)
 	return err
 }
 

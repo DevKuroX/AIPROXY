@@ -31,6 +31,7 @@ func (h *SettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 		"rtkEnabled",
 		"cavemanEnabled",
 		"cavemanLevel",
+		"compactEnabled",
 		"outboundProxyEnabled",
 		"outboundProxyUrl",
 		"outboundNoProxy",
@@ -52,6 +53,8 @@ func (h *SettingsHandler) Get(w http.ResponseWriter, r *http.Request) {
 				settings[key] = true
 			case "requireApiKey", "tunnelEnabled", "tunnelDashboardAccess", "cavemanEnabled", "outboundProxyEnabled":
 				settings[key] = false
+			case "compactEnabled":
+				settings[key] = true
 			case "rtkEnabled":
 				settings[key] = true
 			case "cavemanLevel":

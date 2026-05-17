@@ -20,9 +20,14 @@ func (db *DB) CreateProviderNode(ctx context.Context, node *models.ProviderNode)
 	node.CreatedAt = now
 	node.UpdatedAt = now
 
-	_, err := db.pool.Exec(ctx,
+	encKey, err := db.encryptAPIKey(node.APIKey)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.pool.Exec(ctx,
 		"INSERT INTO provider_nodes (id, name, base_url, api_key, compatible_format, enabled, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-		node.ID, node.Name, node.BaseURL, node.APIKey, node.CompatibleFormat, node.Enabled, node.CreatedAt, node.UpdatedAt,
+		node.ID, node.Name, node.BaseURL, encKey, node.CompatibleFormat, node.Enabled, node.CreatedAt, node.UpdatedAt,
 	)
 	return err
 }
@@ -40,6 +45,13 @@ func (db *DB) GetProviderNodeByID(ctx context.Context, id string) (*models.Provi
 	if err != nil {
 		return nil, err
 	}
+
+	decKey, err := db.decryptAPIKey(node.APIKey)
+	if err != nil {
+		return nil, err
+	}
+	node.APIKey = decKey
+
 	return &node, nil
 }
 
@@ -58,6 +70,11 @@ func (db *DB) ListProviderNodes(ctx context.Context) ([]models.ProviderNode, err
 		if err := rows.Scan(&n.ID, &n.Name, &n.BaseURL, &n.APIKey, &n.CompatibleFormat, &n.Enabled, &n.CreatedAt, &n.UpdatedAt); err != nil {
 			return nil, err
 		}
+		decKey, err := db.decryptAPIKey(n.APIKey)
+		if err != nil {
+			return nil, err
+		}
+		n.APIKey = decKey
 		nodes = append(nodes, n)
 	}
 	return nodes, rows.Err()
@@ -65,9 +82,15 @@ func (db *DB) ListProviderNodes(ctx context.Context) ([]models.ProviderNode, err
 
 func (db *DB) UpdateProviderNode(ctx context.Context, node *models.ProviderNode) error {
 	node.UpdatedAt = time.Now()
+
+	encKey, err := db.encryptAPIKey(node.APIKey)
+	if err != nil {
+		return err
+	}
+
 	result, err := db.pool.Exec(ctx,
 		"UPDATE provider_nodes SET name = $1, base_url = $2, api_key = $3, compatible_format = $4, enabled = $5, updated_at = $6 WHERE id = $7",
-		node.Name, node.BaseURL, node.APIKey, node.CompatibleFormat, node.Enabled, node.UpdatedAt, node.ID,
+		node.Name, node.BaseURL, encKey, node.CompatibleFormat, node.Enabled, node.UpdatedAt, node.ID,
 	)
 	if err != nil {
 		return err
@@ -106,5 +129,12 @@ func (db *DB) GetProviderNodeByModelAlias(ctx context.Context, alias string) (*m
 	if err != nil {
 		return nil, "", err
 	}
+
+	decKey, err := db.decryptAPIKey(node.APIKey)
+	if err != nil {
+		return nil, "", err
+	}
+	node.APIKey = decKey
+
 	return &node, targetModel, nil
 }
